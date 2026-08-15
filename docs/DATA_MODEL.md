@@ -192,11 +192,11 @@ groups/{groupId}/leaderboard/{exerciseId}
   ]
 ```
 
-### `groups/{groupId}/streakBoard` (single doc)
+### `groups/{groupId}/streakBoard/current` (single doc)
 Denormalized ranking of every member's current streak — one read draws the board.
 
 ```
-groups/{groupId}/streakBoard
+groups/{groupId}/streakBoard/current
   updatedAt: timestamp
   entries: [
     { userId, displayName, currentStreak, longestStreak },
@@ -221,7 +221,7 @@ groups/{groupId}/supplementPosts/{postId}
 ## Nutrition (Phase 3)
 
 ```
-users/{userId}/nutritionTargets (single doc)
+users/{userId}/meta/nutritionTargets (single doc)
   dailyCalories, proteinG, carbsG, fatG: number
 
 users/{userId}/foodLog/{entryId}

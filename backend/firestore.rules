@@ -38,10 +38,14 @@ service cloud.firestore {
       }
     }
 
-    // ---- Shared exercise library: everyone signed-in can read; writes locked down for now ----
+    // ---- Shared exercise library: everyone signed-in reads; users add their own customs ----
+    // (Seeded exercises are written via the Admin SDK / CLI, which bypasses these rules.)
     match /exercises/{exerciseId} {
       allow read: if isSignedIn();
-      allow write: if false; // seed via admin/backend only for now
+      allow create: if isSignedIn()
+                    && request.resource.data.isCustom == true
+                    && request.resource.data.createdBy == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.createdBy == request.auth.uid;
     }
 
     // ---- Training plans: read built-in/shared plans; write only your own ----
@@ -50,15 +54,31 @@ service cloud.firestore {
       allow write: if isSignedIn() && request.resource.data.createdBy == request.auth.uid;
     }
 
-    // ---- Groups: only members can read; refine write rules as join-flow is built ----
+    // ---- Groups (crews) ----
     match /groups/{groupId} {
-      allow read: if isSignedIn() && request.auth.uid in resource.data.members;
-      allow write: if isSignedIn(); // TODO: restrict to members / creator once join flow exists
+      // Readable by any signed-in user, so someone can look a crew up by invite code to join.
+      allow read: if isSignedIn();
+      // Create your own crew (you must be its creator and a member).
+      allow create: if isSignedIn()
+                    && request.resource.data.createdBy == request.auth.uid
+                    && request.auth.uid in request.resource.data.members;
+      // Update: existing members can edit; a non-member may add THEMSELVES (join by code).
+      // ⚠️ MVP TRADE-OFF: this lets a signed-in user add themselves to any groupId they know.
+      // Harden on Blaze by moving "join" into a Cloud Function that verifies the invite code.
+      allow update: if isSignedIn()
+                    && (request.auth.uid in resource.data.members
+                        || request.auth.uid in request.resource.data.members);
+      allow delete: if isSignedIn() && resource.data.createdBy == request.auth.uid;
 
-      // Group-visible, explicitly-shared data (leaderboards, streak board, supplement posts).
+      // Boards & supplement posts: members read; members write (client-side board sync on Spark).
+      // ⚠️ On Blaze, tighten leaderboard/streakBoard `write` to `false` and let the
+      //    Cloud Function (Admin SDK) own them — see backend/functions/.
+      function isMember() {
+        return isSignedIn()
+          && request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.members;
+      }
       match /{sub}/{docId} {
-        allow read: if isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.members;
-        allow write: if isSignedIn(); // TODO: leaderboards/streaks should be written by Cloud Functions only
+        allow read, write: if isMember();
       }
     }
   }

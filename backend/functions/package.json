@@ -1,0 +1,22 @@
+{
+  "name": "ironsync-functions",
+  "description": "Cloud Functions for IronSync — authoritative crew boards + push notifications",
+  "engines": {
+    "node": "20"
+  },
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "tsc",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "deploy": "npm run build && firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.6.0",
+    "firebase-functions": "^6.1.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  },
+  "private": true
+}

@@ -19,7 +19,13 @@ Everything server-side for IronSync lives here. This is the backend owner's home
 2. Create the project in the [Firebase console](https://console.firebase.google.com/) (enable Auth + Firestore).
 3. From this folder: `firebase login` then `firebase use --add` to link the project.
 4. Deploy rules: `firebase deploy --only firestore:rules`
-5. For Cloud Functions: `firebase init functions` (generates the real functions project; use `functions/index.example.js` as the reference for the beat-your-PR logic).
+5. Cloud Functions are already written in `functions/` (TypeScript). **They need the Blaze plan** — they won't deploy on Spark. To deploy once you're on Blaze:
+   ```bash
+   cd functions && npm install && npm run deploy
+   ```
+   Until then, the app keeps the crew boards updated client-side (see `app/src/services/groups.ts`). When you deploy the function, remove the client-side board-sync calls so boards aren't written twice.
+
+> **Spark vs Blaze:** everything except Cloud Functions runs on the free Spark plan. The only things that need Blaze are the server-side board authority and the "beat your PR" **push notification** in `functions/`.
 
 ## Local development
 

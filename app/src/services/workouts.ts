@@ -22,17 +22,31 @@ import {
   setDoc,
   updateDoc,
 } from 'firebase/firestore';
-import { estimate1RM, type PersonalRecord, type Workout } from '../models';
+import {
+  estimate1RM,
+  type LeaderboardEntry,
+  type PersonalRecord,
+  type Workout,
+} from '../models';
 import { todayISO } from './dates';
 import { db } from './firebase';
+import { syncPersonalRecordToGroups, syncStreakToGroups } from './groups';
 import { streakOnWorkout, type StreakState } from './streaks';
 import { getUser } from './users';
+
+/** A crew-mate this workout knocked off the #1 spot — for a notification later. */
+export interface Dethroned {
+  groupId: string;
+  exerciseId: string;
+  dethronedUserId: string;
+}
 
 /** What logging a workout produced — handy for the UI to celebrate. */
 export interface LogWorkoutResult {
   workoutId: string;
   newPRs: PersonalRecord[]; // exercises where this session set a new PR
   streak: StreakState;
+  dethroned: Dethroned[]; // crew PRs this session took over
 }
 
 /**
@@ -71,7 +85,41 @@ export async function logWorkout(
     });
   }
 
-  return { workoutId: ref.id, newPRs, streak };
+  // 4. Push updates to the crew boards (client-side on Spark; a Cloud Function
+  //    will own this once we're on Blaze — see backend/functions/).
+  const groupIds = user?.groupIds ?? [];
+  const displayName = user?.displayName ?? 'Someone';
+  const dethroned: Dethroned[] = [];
+  if (groupIds.length > 0) {
+    await syncStreakToGroups(groupIds, {
+      userId,
+      displayName,
+      currentStreak: streak.currentStreak,
+      longestStreak: streak.longestStreak,
+    });
+    for (const pr of newPRs) {
+      const entry: LeaderboardEntry = {
+        userId,
+        displayName,
+        estimated1RM: pr.estimated1RM,
+        weightKg: pr.bestWeightKg,
+        reps: pr.bestReps,
+        date: pr.achievedOn,
+      };
+      const results = await syncPersonalRecordToGroups(groupIds, entry, pr.exerciseId);
+      for (const r of results) {
+        if (r.dethronedUserId) {
+          dethroned.push({
+            groupId: r.groupId,
+            exerciseId: pr.exerciseId,
+            dethronedUserId: r.dethronedUserId,
+          });
+        }
+      }
+    }
+  }
+
+  return { workoutId: ref.id, newPRs, streak, dethroned };
 }
 
 /** For each exercise in the workout, save a PR if this session beat the stored one. */
