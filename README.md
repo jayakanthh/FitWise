@@ -12,15 +12,32 @@ This repo is where we plan, design, and build it.
 
 FitWise is built around five pillars:
 
-| Pillar | What it covers |
-| --- | --- |
-| 🏋️ **Workouts** | Log daily workouts, follow structured training plans, track personal records (PRs) |
-| 🥗 **Nutrition** | Build a diet plan, count calories & macros, log what you eat |
-| 👤 **Profile & Health** | Personal profile, body measurements over time, any health issues/notes to train safely |
-| 👥 **Friend Group** | A private crew — share supplement results, see the PR leaderboard, get pinged when someone beats your PR |
-| 🔥 **Motivation** | Daily streak counter and nudges to keep the habit alive |
+### 🏋️ Workouts
+- Log daily workouts
+- Follow structured training plans
+- Track personal records (PRs)
 
-A fuller breakdown of every feature lives in **[docs/FEATURES.md](docs/FEATURES.md)**.
+### 🥗 Nutrition
+- Build a diet plan
+- Count calories & macros
+- Log what you eat
+
+### 👤 Profile & Health
+- Personal profile
+- Body measurements over time
+- Health issues / notes so plans train you safely
+
+### 👥 Friend Group
+- A private crew of friends
+- Share supplement results
+- PR leaderboard across the crew
+- Get pinged when someone beats your PR
+
+### 🔥 Motivation
+- Daily streak counter
+- Nudges to keep the habit alive
+
+> 💡 **Adding an idea?** Just drop a bullet under the right pillar above — no table formatting to fight with. For the detailed breakdown with build phases, see **[docs/FEATURES.md](docs/FEATURES.md)**.
 
 ---
 
