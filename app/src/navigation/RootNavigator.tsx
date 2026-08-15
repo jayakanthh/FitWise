@@ -2,7 +2,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { Text } from 'react-native';
 import { colors } from '../theme/colors';
-import HomeScreen from '../screens/HomeScreen';
+import HomeScreenContainer from '../screens/HomeScreenContainer';
 import WorkoutsScreen from '../screens/WorkoutsScreen';
 import NutritionScreen from '../screens/NutritionScreen';
 import GroupScreen from '../screens/GroupScreen';
@@ -44,7 +44,7 @@ export default function RootNavigator() {
           ),
         })}
       >
-        <Tab.Screen name="Home" component={HomeScreen} />
+        <Tab.Screen name="Home" component={HomeScreenContainer} />
         <Tab.Screen name="Workouts" component={WorkoutsScreen} />
         <Tab.Screen name="Nutrition" component={NutritionScreen} />
         <Tab.Screen name="Group" component={GroupScreen} />
