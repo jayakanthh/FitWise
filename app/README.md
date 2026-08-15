@@ -1,4 +1,4 @@
-# FitWise — App (Expo / React Native + TypeScript)
+# IronSync — App (Expo / React Native + TypeScript)
 
 The mobile app. One codebase runs on iOS + Android via [Expo](https://expo.dev/).
 

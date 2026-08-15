@@ -1,6 +1,6 @@
 # backend/ — Firebase (jaikanth)
 
-Everything server-side for FitWise lives here. This is the backend owner's home base.
+Everything server-side for IronSync lives here. This is the backend owner's home base.
 
 ## What's in here
 

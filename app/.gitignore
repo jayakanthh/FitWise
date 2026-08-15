@@ -40,5 +40,5 @@ yarn-error.*
 /ios
 /android
 
-# FitWise: real firebase config (each dev supplies their own)
+# IronSync: real firebase config (each dev supplies their own)
 src/services/firebaseConfig.ts

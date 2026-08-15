@@ -1,16 +1,16 @@
-# 💪 FitWise
+# 💪 IronSync
 
 > A gym & fitness companion app that helps you and your friends train smarter, eat better, and stay motivated together.
 
-FitWise started as a simple idea between two friends who lift together: an app to track our workouts, follow a plan, keep our nutrition in check, and — most importantly — keep each other accountable and hyped. Streaks, shared PRs, supplement notes... the stuff that actually keeps a gym crew going.
+IronSync started as a simple idea between two friends who lift together: an app to track our workouts, follow a plan, keep our nutrition in check, and — most importantly — keep each other accountable and hyped. Streaks, shared PRs, supplement notes... the stuff that actually keeps a gym crew going.
 
 This repo is where we plan, design, and build it.
 
 ---
 
-## ✨ What FitWise does (the vision)
+## ✨ What IronSync does (the vision)
 
-FitWise is built around five pillars:
+IronSync is built around five pillars:
 
 ### 🏋️ Workouts
 - Log daily workouts
@@ -68,7 +68,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for why we picked these.
 ## 📁 Repo structure
 
 ```
-FitWise/
+IronSync/
 ├── README.md              ← you are here
 ├── app/                   ← the Expo (React Native + TS) mobile app
 │   └── src/

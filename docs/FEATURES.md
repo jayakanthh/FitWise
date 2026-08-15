@@ -1,6 +1,6 @@
-# FitWise — Features
+# IronSync — Features
 
-This is the full breakdown of what FitWise should do, grouped into the five pillars. Each feature notes roughly which phase it belongs to (see [ROADMAP.md](ROADMAP.md)). Nothing here is final — it's our shared source of truth for scope. Edit freely.
+This is the full breakdown of what IronSync should do, grouped into the five pillars. Each feature notes roughly which phase it belongs to (see [ROADMAP.md](ROADMAP.md)). Nothing here is final — it's our shared source of truth for scope. Edit freely.
 
 Legend: 🟢 MVP · 🔵 Phase 2 · 🟡 Phase 3 · ⚪ Phase 4 / later
 
@@ -41,11 +41,11 @@ Knowing the person so the app can train them safely and personally.
 - 🟡 **Measurement charts** — visualize measurement changes over time.
 - ⚪ **Progress photos** — optional private photos to track visual progress.
 
-> ⚠️ **Health-data note:** health issues and body data are sensitive personal information. We should treat this carefully — keep it private to the user by default and be mindful of data-privacy rules. See [ARCHITECTURE.md](ARCHITECTURE.md#privacy--sensitive-data). FitWise is a fitness tracker, **not** medical advice.
+> ⚠️ **Health-data note:** health issues and body data are sensitive personal information. We should treat this carefully — keep it private to the user by default and be mindful of data-privacy rules. See [ARCHITECTURE.md](ARCHITECTURE.md#privacy--sensitive-data). IronSync is a fitness tracker, **not** medical advice.
 
 ## 👥 4. Friend Group (Social)
 
-The thing that makes FitWise *ours* — a private crew that keeps each other going.
+The thing that makes IronSync *ours* — a private crew that keeps each other going.
 
 - 🔵 **Friend group / crew** — create or join a small private group of friends.
 - 🔵 **PR leaderboard** — see the crew's PRs per exercise; who's lifting what.

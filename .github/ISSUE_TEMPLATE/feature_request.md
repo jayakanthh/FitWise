@@ -1,6 +1,6 @@
 ---
 name: 💡 Feature / idea
-about: Something FitWise should do
+about: Something IronSync should do
 title: "[Feature] "
 labels: enhancement
 ---

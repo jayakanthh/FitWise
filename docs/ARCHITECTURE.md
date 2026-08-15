@@ -1,4 +1,4 @@
-# FitWise — Architecture & Tech Decisions
+# IronSync — Architecture & Tech Decisions
 
 Where we record *what* we picked and *why*, so future-us (and anyone new) understands the reasoning. Update this whenever we make a real decision.
 
@@ -38,11 +38,11 @@ Where we record *what* we picked and *why*, so future-us (and anyone new) unders
 
 ## Privacy & sensitive data
 
-FitWise stores **health information** (injuries, conditions) and **body measurements**. This is sensitive personal data and we should treat it with care:
+IronSync stores **health information** (injuries, conditions) and **body measurements**. This is sensitive personal data and we should treat it with care:
 
 - **Firestore Security Rules** must ensure a user's profile, health notes, and measurements are readable/writable **only by that user**. Health data should *never* be exposed to the friend group.
 - Only explicitly-shared data (PRs, supplement posts a user chooses to post) is visible to the crew.
-- Add clear in-app disclaimers: **FitWise is a fitness tracker, not medical advice.** Supplement notes are personal experience, not recommendations.
+- Add clear in-app disclaimers: **IronSync is a fitness tracker, not medical advice.** Supplement notes are personal experience, not recommendations.
 - Be mindful of data-protection expectations (e.g. GDPR-style rights) if this ever goes beyond just us — let users delete their data.
 
 We'll write and version the actual security rules (`firestore.rules`) once we start building.

@@ -1,5 +1,5 @@
 /**
- * FitWise shared data models — the CONTRACT between backend (jaikanth) and UI (Pruthvi).
+ * IronSync shared data models — the CONTRACT between backend (jaikanth) and UI (Pruthvi).
  *
  * These TypeScript types mirror the Firestore data model in docs/DATA_MODEL.md.
  * When the shape of data changes, change it HERE first, then both sides update.

@@ -43,7 +43,7 @@ export interface PersonalRecord {
 
 /**
  * Estimated 1-rep-max via the Epley formula: 1RM ≈ weight × (1 + reps/30).
- * A single rep returns the weight itself. This is how FitWise decides
+ * A single rep returns the weight itself. This is how IronSync decides
  * "who's stronger" and whether a PR was beaten — see docs/DATA_MODEL.md.
  */
 export function estimate1RM(weightKg: number, reps: number): number {

@@ -1,6 +1,6 @@
-# FitWise — Data Model (Firebase / Cloud Firestore)
+# IronSync — Data Model (Firebase / Cloud Firestore)
 
-How FitWise's data is organized. **Firestore** is a NoSQL document database: **collections** hold **documents**, and documents can hold **sub-collections**. The TypeScript versions of everything here live in [`app/src/models/`](../app/src/models) — that's the code contract; this doc is the reasoning.
+How IronSync's data is organized. **Firestore** is a NoSQL document database: **collections** hold **documents**, and documents can hold **sub-collections**. The TypeScript versions of everything here live in [`app/src/models/`](../app/src/models) — that's the code contract; this doc is the reasoning.
 
 ## 🗺️ The map
 

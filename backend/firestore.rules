@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// FitWise Firestore Security Rules
+// IronSync Firestore Security Rules
 // Owner: jaikanth (backend). These rules are the REAL protection for our data —
 // the client can't be trusted, so access control lives here.
 //

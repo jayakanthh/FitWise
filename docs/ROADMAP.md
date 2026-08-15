@@ -1,4 +1,4 @@
-# FitWise — Roadmap
+# IronSync — Roadmap
 
 We build in phases so there's always something working we can actually use. Each phase should be usable on its own before we move to the next. Ship small, use it ourselves, then expand.
 

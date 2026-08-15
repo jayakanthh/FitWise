@@ -1,4 +1,4 @@
-# Contributing to FitWise
+# Contributing to IronSync
 
 How the two of us work on this together without stepping on each other. Keep it lightweight — we're two friends, not a corporation. But a little structure now saves headaches later.
 

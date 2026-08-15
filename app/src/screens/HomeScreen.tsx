@@ -19,7 +19,7 @@ export default function HomeScreen() {
     <View style={styles.container}>
       <StatusBar style="light" />
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.logo}>💪 FitWise</Text>
+        <Text style={styles.logo}>💪 IronSync</Text>
         <Text style={styles.tagline}>Train smarter. Together.</Text>
 
         {PILLARS.map((p) => (
