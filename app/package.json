@@ -3,11 +3,18 @@
   "version": "1.0.0",
   "main": "index.ts",
   "dependencies": {
+    "@react-navigation/bottom-tabs": "^7.2.0",
+    "@react-navigation/native": "^7.0.14",
     "expo": "~57.0.13",
     "expo-status-bar": "~57.0.1",
     "firebase": "^12.17.1",
+    "lucide-react-native": "^1.31.0",
     "react": "19.2.3",
-    "react-native": "0.86.2"
+    "react-native": "0.86.2",
+    "react-native-confetti-cannon": "^1.5.2",
+    "react-native-safe-area-context": "~5.1.0",
+    "react-native-screens": "~4.6.0",
+    "react-native-svg": "~15.11.1"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
