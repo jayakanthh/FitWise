@@ -1,0 +1,56 @@
+/**
+ * CurrentUser context — the app's single source of "who's signed in".
+ * Subscribes to Firebase auth once and loads the backend profile, so any screen
+ * can read the real signed-in user. This is what connects the UI to the backend.
+ * Owner: jaikanth (backend) + Pruthvi (UI).
+ */
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import type { User } from '../models';
+import { getUser, onAuthChange } from '../services';
+
+interface CurrentUserState {
+  loading: boolean; // still resolving auth state on launch
+  authed: boolean; // is someone signed in
+  profile: User | null; // their backend profile
+  refresh: () => Promise<void>;
+}
+
+const Ctx = createContext<CurrentUserState>({
+  loading: true,
+  authed: false,
+  profile: null,
+  refresh: async () => {},
+});
+
+export function CurrentUserProvider({ children }: { children: ReactNode }) {
+  const [loading, setLoading] = useState(true);
+  const [authed, setAuthed] = useState(false);
+  const [profile, setProfile] = useState<User | null>(null);
+  const [uid, setUid] = useState<string | null>(null);
+
+  useEffect(() => {
+    return onAuthChange(async (fbUser) => {
+      if (fbUser) {
+        setUid(fbUser.uid);
+        setAuthed(true);
+        setProfile(await getUser(fbUser.uid));
+      } else {
+        setUid(null);
+        setAuthed(false);
+        setProfile(null);
+      }
+      setLoading(false);
+    });
+  }, []);
+
+  const refresh = async () => {
+    if (uid) setProfile(await getUser(uid));
+  };
+
+  return <Ctx.Provider value={{ loading, authed, profile, refresh }}>{children}</Ctx.Provider>;
+}
+
+/** Read the signed-in user anywhere in the app. */
+export function useCurrentUser(): CurrentUserState {
+  return useContext(Ctx);
+}

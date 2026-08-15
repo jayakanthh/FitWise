@@ -1,16 +1,21 @@
 import HomeScreen from './HomeScreen';
 import { initialUserProfile, initialBuddies } from '../data/mockData';
+import { useCurrentUser } from '../context/CurrentUser';
+import { userToProfile } from '../services/adapters';
 import type { TrainingBuddy } from '../types/ironsync';
 
 /**
- * TEMP wiring: feeds HomeScreen mock data + no-op handlers so the tab renders.
- * Replace with real state (Firestore) and navigation actions (find match flow,
- * start workout flow, buddy detail) as those screens get ported.
+ * Feeds HomeScreen the REAL signed-in user (name/email from Firestore) via the
+ * adapter, keeping mock values for UI-only fields the backend doesn't track yet
+ * (steps, calories, weight goal). Buddies are still mock until that backend lands.
  */
 export default function HomeScreenContainer() {
+  const { profile } = useCurrentUser();
+  const user = profile ? userToProfile(profile, initialUserProfile) : initialUserProfile;
+
   return (
     <HomeScreen
-      user={initialUserProfile}
+      user={user}
       buddies={initialBuddies}
       onFindMatchClick={() => {}}
       onStartTodayPlan={() => {}}
