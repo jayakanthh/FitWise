@@ -57,15 +57,11 @@ Full plan with milestones: **[docs/ROADMAP.md](docs/ROADMAP.md)**.
 
 ## 🧱 Tech stack
 
-We're **still deciding the frontend** (mobile vs web) — see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the trade-offs we're weighing.
+- **Frontend:** [React Native](https://reactnative.dev/) + [Expo](https://expo.dev/) — one codebase for iOS + Android.
+- **Language:** TypeScript.
+- **Backend / data:** [Firebase](https://firebase.google.com/) — authentication, Cloud Firestore database, push notifications, and Cloud Functions, so two people can ship without running our own servers.
 
-What we've decided so far:
-
-- **Backend / data:** [Firebase](https://firebase.google.com/) — authentication, database, and push notifications, so two people can ship without running our own servers.
-- **Frontend:** _TBD_ (React Native, Flutter, or web — decision pending)
-- **Language:** _TBD_ (follows the frontend choice)
-
-> ℹ️ Nothing is locked in beyond the backend. If you're reading this later and we picked a stack, this section will say so.
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for why we picked these.
 
 ---
 
@@ -74,17 +70,27 @@ What we've decided so far:
 ```
 FitWise/
 ├── README.md              ← you are here
+├── app/                   ← the Expo (React Native + TS) mobile app
+│   └── src/
+│       ├── screens/       ← full screens        (Pruthvi / UI)
+│       ├── components/    ← reusable UI pieces   (Pruthvi / UI)
+│       ├── theme/         ← colors & spacing     (Pruthvi / UI)
+│       ├── models/        ← shared data types    (the contract — both)
+│       └── services/      ← Firebase & data access (jaikanth / backend)
+├── backend/               ← Firestore rules, indexes & Cloud Functions (jaikanth)
 ├── docs/                  ← all planning & design docs
 │   ├── FEATURES.md        ← every feature, broken down
 │   ├── ROADMAP.md         ← phased build plan & milestones
 │   ├── DATA_MODEL.md      ← how data is organized (Firebase sketch)
 │   ├── ARCHITECTURE.md    ← tech decisions & trade-offs
-│   └── CONTRIBUTING.md    ← how we work together on this
+│   └── CONTRIBUTING.md    ← how we work together (branches, workflow)
 ├── .github/               ← issue templates for tracking ideas & bugs
 └── .gitignore
 ```
 
-Once we pick a stack, app code lands in folders like `app/` or `src/` (and maybe `functions/` for Firebase Cloud Functions).
+**Who owns what:** Pruthvi builds UI in `app/src/{screens,components,theme}`, jaikanth builds the backend in `app/src/services` + `backend/`, and both keep the shared data shapes in `app/src/models` in sync — that's the contract that lets you work in parallel.
+
+**Run the app:** `cd app && npm install && npm start` — see [app/README.md](app/README.md).
 
 ---
 

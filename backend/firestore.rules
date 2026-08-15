@@ -1,0 +1,65 @@
+rules_version = '2';
+
+// FitWise Firestore Security Rules
+// Owner: jaikanth (backend). These rules are the REAL protection for our data —
+// the client can't be trusted, so access control lives here.
+//
+// Golden rules:
+//  - A user's profile, measurements, and HEALTH NOTES are private to that user.
+//  - Health data must NEVER be readable by the friend group.
+//  - Only explicitly-shared data (group PRs, streak board, supplement posts) is group-visible.
+//
+// This is a starting point — tighten as features land. Test with the Firebase emulator.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // ---- Users & their PRIVATE sub-collections ----
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+
+      // Measurements & health notes: owner-only, no exceptions.
+      match /measurements/{docId} {
+        allow read, write: if isOwner(userId);
+      }
+      match /healthNotes/{docId} {
+        allow read, write: if isOwner(userId);
+      }
+      // Workouts, PRs, nutrition: owner-only for now.
+      match /{sub}/{docId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // ---- Shared exercise library: everyone signed-in can read; writes locked down for now ----
+    match /exercises/{exerciseId} {
+      allow read: if isSignedIn();
+      allow write: if false; // seed via admin/backend only for now
+    }
+
+    // ---- Training plans: read built-in/shared plans; write only your own ----
+    match /plans/{planId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && request.resource.data.createdBy == request.auth.uid;
+    }
+
+    // ---- Groups: only members can read; refine write rules as join-flow is built ----
+    match /groups/{groupId} {
+      allow read: if isSignedIn() && request.auth.uid in resource.data.members;
+      allow write: if isSignedIn(); // TODO: restrict to members / creator once join flow exists
+
+      // Group-visible, explicitly-shared data (leaderboards, streak board, supplement posts).
+      match /{sub}/{docId} {
+        allow read: if isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.members;
+        allow write: if isSignedIn(); // TODO: leaderboards/streaks should be written by Cloud Functions only
+      }
+    }
+  }
+}

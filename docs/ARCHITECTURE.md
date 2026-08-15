@@ -16,23 +16,18 @@ Where we record *what* we picked and *why*, so future-us (and anyone new) unders
 
 **Trade-off we accept:** some vendor lock-in to Google, and Firestore's NoSQL model takes a bit of getting used to.
 
+### Frontend: React Native + Expo (TypeScript) ✅
+- One codebase → iOS + Android.
+- Easiest to run while building (Expo Go on a real phone, no Xcode needed to start).
+- Best-documented pairing with Firebase; TypeScript is friendlier for us than Dart.
+
+**Why:** a gym app lives on your phone at the gym, so mobile beats web; among mobile options, React Native + Expo + Firebase is the most common, best-supported combo and lets us start fast.
+
+**Trade-off we accept:** mobile-first — no web version unless we add one later (Expo can target web, so the door's open).
+
 ---
 
 ## Still to decide
-
-### Frontend: mobile vs web ⏳
-
-This is the big open one. The trade-offs:
-
-| Option | Pros | Cons |
-| --- | --- | --- |
-| **React Native (Expo)** | One codebase → iOS + Android; JS/TS; huge ecosystem; pairs great with Firebase | Mobile-only unless we add web separately |
-| **Flutter** | Beautiful, fast UI; one codebase for iOS + Android (+ web) | Dart is a new language for us to learn |
-| **Web app (React)** | Fastest to build & share (just a link); no app store; easy to test | Not a "real" installed app; push notifications on iOS web are limited |
-
-**Gut check:** a gym app is used *at the gym, on a phone*. That leans mobile. React Native + Firebase is the most common, best-documented combo for exactly this kind of app, and TypeScript is friendlier to learn than Dart. **Leading candidate: React Native (Expo).** But if we want the absolute fastest path to something shareable, a web app wins short-term.
-
-_Decision: pending. Write it here when we make it._
 
 ### Other open questions
 - Food/nutrition data — own database vs third-party API (e.g. a nutrition API)?
@@ -58,5 +53,5 @@ We'll write and version the actual security rules (`firestore.rules`) once we st
 
 Keep a running list of notable decisions here (date + what + why), newest first.
 
+- **2026-08** — Chose **React Native + Expo (TypeScript)** for the frontend and scaffolded `app/`. _Why:_ mobile-first fits a gym app; best-supported combo with Firebase; fastest to start.
 - **2026-08** — Chose Firebase as the backend. _Why:_ fastest path for a two-person team; built-in auth, DB, notifications, and serverless.
-- **2026-08** — Frontend stack left open pending a build spike. _Why:_ want to weigh React Native vs web before committing.

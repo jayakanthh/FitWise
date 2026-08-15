@@ -6,12 +6,29 @@ How the two of us work on this together without stepping on each other. Keep it 
 
 ## 🌱 Branching
 
-- `main` (or `master`) is always the working version. Don't commit broken code straight to it.
-- Make a branch for each feature or fix:
-  - `feat/workout-logging`
-  - `fix/streak-off-by-one`
-  - `docs/update-roadmap`
-- Open a Pull Request to merge into `main`. Even a quick glance from the other person catches a lot.
+Our branch setup:
+
+| Branch | Purpose |
+| --- | --- |
+| `main` | Stable, always-working version. Only tested code lands here. |
+| `dev` | Integration branch — where Pruthvi's and jaikanth's work come together. |
+| `Pruthvi` | Pruthvi's working branch (UI / frontend). |
+| `jaikanth` | jaikanth's working branch (backend). |
+
+**The flow:**
+
+```
+Pruthvi ─┐
+         ├─→ dev ─→ main
+jaikanth ┘
+```
+
+1. Do your day-to-day work on your own branch (`Pruthvi` or `jaikanth`).
+2. When something's ready, open a PR into `dev`. A quick glance from the other person catches a lot.
+3. Once `dev` is stable and you've both synced, merge `dev` → `main`.
+4. Pull `dev` into your branch regularly so you don't drift apart.
+
+For a bigger self-contained feature, you can still spin a topic branch off `dev` (e.g. `feat/workout-logging`) and PR it in.
 
 ## ✍️ Commits
 
