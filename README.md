@@ -31,6 +31,7 @@ FitWise is built around five pillars:
 - A private crew of friends
 - Share supplement results
 - PR leaderboard across the crew
+- Streak leaderboard — see who's got the longest run going 🔥
 - Get pinged when someone beats your PR
 
 ### 🔥 Motivation

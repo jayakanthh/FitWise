@@ -116,6 +116,20 @@ groups/{groupId}/leaderboard/{exerciseId}
   topEntries: [ { userId, displayName, weightKg, reps, date }, ... ]
 ```
 
+### `groups/{groupId}/streakBoard` (single doc)
+Denormalized ranking of every member's current streak, so the group streak leaderboard loads in one read. Updated whenever a member's streak changes (e.g. from the same Cloud Function that updates `currentStreak` on the user).
+
+```
+groups/{groupId}/streakBoard
+  updatedAt: timestamp
+  entries: [
+    { userId, displayName, currentStreak, longestStreak },
+    ...
+  ]                            // sort by currentStreak to rank
+```
+
+> Each member's `currentStreak` / `longestStreak` already live on `users/{userId}` — this doc just caches the group's copies together so we don't read every member's profile to draw the board.
+
 ### `groups/{groupId}/supplementPosts/{postId}`
 Supplement result sharing.
 

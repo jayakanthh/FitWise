@@ -49,6 +49,7 @@ The thing that makes FitWise *ours* — a private crew that keeps each other goi
 
 - 🔵 **Friend group / crew** — create or join a small private group of friends.
 - 🔵 **PR leaderboard** — see the crew's PRs per exercise; who's lifting what.
+- 🔵 **Streak leaderboard** — the whole crew's current streaks ranked, so you can see who's on the longest run. Losing your #1 spot should sting just enough to get you to the gym. 🔥
 - 🔵 **"Someone beat your PR" alert** — when a friend beats a PR you held, you get notified (friendly competition 🔥).
 - ⚪ **Supplement results sharing** — post whether a supplement is working for you (e.g. "creatine — week 4, strength up"), so the crew can see what's actually giving results.
 - ⚪ **Activity feed** — see friends' recent workouts / streaks.
@@ -61,6 +62,7 @@ The thing that makes FitWise *ours* — a private crew that keeps each other goi
 Keeping the habit alive.
 
 - 🟢 **Streak counter** — count consecutive days (or scheduled gym days) you've trained. Breaking a streak hurts — that's the point.
+- 🔵 **Group streak leaderboard** — your streak isn't just personal; the crew can see everyone's ranked. (Also listed under Friend Group — it's the social side of the streak.)
 - 🔵 **Streak reminders** — a nudge/notification when your streak is about to break.
 - ⚪ **Milestones / badges** — celebrate 7-day, 30-day, 100-day streaks and PR milestones.
 - ⚪ **Weekly recap** — a summary of your week (workouts done, PRs hit, streak status).
