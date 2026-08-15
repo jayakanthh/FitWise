@@ -1,9 +1,6 @@
-import HomeScreen from './src/screens/HomeScreen';
+import RootNavigator from './src/navigation/RootNavigator';
 
-/**
- * App entry point. For now it just renders the Home screen.
- * When we add navigation (React Navigation), the navigator goes here.
- */
+/** App entry point — bottom tab shell for the 5 pillars. */
 export default function App() {
-  return <HomeScreen />;
+  return <RootNavigator />;
 }
