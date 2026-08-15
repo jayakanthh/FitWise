@@ -1,6 +1,9 @@
 /** A person's profile. `id` comes from Firebase Auth. */
 export type Goal = 'cut' | 'maintain' | 'bulk';
 
+/** Weekday index: 0=Sunday .. 6=Saturday. */
+export type Weekday = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+
 export interface User {
   id: string;
   displayName: string;
@@ -10,12 +13,13 @@ export interface User {
   heightCm?: number;
   goal?: Goal;
   createdAt: number; // epoch ms
-  // streak
-  currentStreak: number;
+  // streak — "scheduled training days" model
+  trainingDays: Weekday[]; // e.g. [1,3,5] = Mon/Wed/Fri; only these days affect the streak
+  currentStreak: number; // consecutive scheduled days trained
   longestStreak: number;
-  lastWorkoutDate?: string; // YYYY-MM-DD
-  // which crew they belong to
-  friendGroupId?: string | null;
+  lastTrainedDate?: string; // YYYY-MM-DD
+  // social — a user can belong to several crews
+  groupIds: string[];
 }
 
 /** A body measurement snapshot over time. */

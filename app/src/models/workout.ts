@@ -3,8 +3,10 @@ export interface Exercise {
   id: string;
   name: string; // "Barbell Bench Press"
   muscleGroup: string; // "chest"
+  equipment?: string; // "barbell"
+  gifUrl?: string; // demo animation (from seed source, e.g. ExerciseDB)
   isCustom: boolean;
-  createdBy?: string | null; // userId, or null for built-in
+  createdBy?: string | null; // userId, or null for built-in / seeded
 }
 
 /** One set within an exercise entry. */
@@ -29,13 +31,24 @@ export interface Workout {
   createdAt: number;
 }
 
-/** Personal record for one exercise (one doc per exercise per user). */
+/** Personal record for one exercise (one doc per exercise per user). Ranked by estimated1RM. */
 export interface PersonalRecord {
   exerciseId: string;
-  bestWeightKg: number;
+  estimated1RM: number; // Epley — the value we compare & rank on
+  bestWeightKg: number; // the actual set that produced it
   bestReps: number;
   achievedOn: string; // YYYY-MM-DD
   workoutId: string;
+}
+
+/**
+ * Estimated 1-rep-max via the Epley formula: 1RM ≈ weight × (1 + reps/30).
+ * A single rep returns the weight itself. This is how FitWise decides
+ * "who's stronger" and whether a PR was beaten — see docs/DATA_MODEL.md.
+ */
+export function estimate1RM(weightKg: number, reps: number): number {
+  if (reps <= 1) return weightKg;
+  return Math.round(weightKg * (1 + reps / 30) * 10) / 10; // 1 decimal
 }
 
 /** A training plan / template (e.g. Push/Pull/Legs). */

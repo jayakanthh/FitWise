@@ -1,17 +1,19 @@
-/** A private crew of friends. */
+/** A private crew of friends. A user can belong to several (see User.groupIds). */
 export interface Group {
   id: string;
   name: string;
-  members: string[]; // userIds
+  members: string[]; // userIds — kept in sync with each member's groupIds
   createdBy: string;
   createdAt: number;
+  inviteCode?: string; // short code friends use to join
 }
 
-/** One row on the PR leaderboard for an exercise. */
+/** One row on the PR leaderboard for an exercise. Ranked by estimated1RM. */
 export interface LeaderboardEntry {
   userId: string;
   displayName: string;
-  weightKg: number;
+  estimated1RM: number; // what we rank by
+  weightKg: number; // the actual set behind it
   reps: number;
   date: string; // YYYY-MM-DD
 }
