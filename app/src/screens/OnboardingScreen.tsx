@@ -1,0 +1,211 @@
+import { useState } from 'react';
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { colors, spacing } from '../theme/colors';
+import type { Goal, Weekday } from '../models';
+import { addMeasurement, completeOnboarding, todayISO } from '../services';
+import { useCurrentUser } from '../context/CurrentUser';
+
+const GOALS: { key: Goal; label: string }[] = [
+  { key: 'cut', label: 'Cut' },
+  { key: 'maintain', label: 'Maintain' },
+  { key: 'bulk', label: 'Bulk' },
+];
+const DAYS: { key: Weekday; label: string }[] = [
+  { key: 1, label: 'Mon' },
+  { key: 2, label: 'Tue' },
+  { key: 3, label: 'Wed' },
+  { key: 4, label: 'Thu' },
+  { key: 5, label: 'Fri' },
+  { key: 6, label: 'Sat' },
+  { key: 0, label: 'Sun' },
+];
+
+/**
+ * First-run onboarding — collects the user's stats + weekly training schedule,
+ * saves them to the backend, then flips `onboarded` so the app opens. The
+ * training days drive the streak (see docs/DATA_MODEL.md).
+ */
+export default function OnboardingScreen() {
+  const { profile, refresh } = useCurrentUser();
+  const [age, setAge] = useState('');
+  const [height, setHeight] = useState('');
+  const [weight, setWeight] = useState('');
+  const [goal, setGoal] = useState<Goal>('maintain');
+  const [days, setDays] = useState<Weekday[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const toggleDay = (d: Weekday) =>
+    setDays((cur) => (cur.includes(d) ? cur.filter((x) => x !== d) : [...cur, d]));
+
+  const save = async () => {
+    if (!profile) return;
+    if (days.length === 0) {
+      setError('Pick at least one training day to track your streak.');
+      return;
+    }
+    setError(null);
+    setBusy(true);
+    try {
+      const weightKg = weight ? Number(weight) : undefined;
+      await completeOnboarding(profile.id, {
+        age: age ? Number(age) : undefined,
+        heightCm: height ? Number(height) : undefined,
+        weightKg,
+        goal,
+        trainingDays: days,
+      });
+      if (weightKg) await addMeasurement(profile.id, { date: todayISO(), weightKg });
+      await refresh(); // re-loads profile; onboarded=true → app opens
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Could not save');
+      setBusy(false);
+    }
+  };
+
+  return (
+    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+      <Text style={styles.h1}>Welcome, {profile?.displayName} 💪</Text>
+      <Text style={styles.sub}>A few quick things so we can tailor IronSync to you.</Text>
+
+      <View style={styles.row}>
+        <Field label="Age" value={age} onChange={setAge} placeholder="24" />
+        <Field label="Height (cm)" value={height} onChange={setHeight} placeholder="178" />
+        <Field label="Weight (kg)" value={weight} onChange={setWeight} placeholder="80" />
+      </View>
+
+      <Text style={styles.label}>Goal</Text>
+      <View style={styles.pillRow}>
+        {GOALS.map((g) => (
+          <TouchableOpacity
+            key={g.key}
+            style={[styles.pill, goal === g.key && styles.pillActive]}
+            onPress={() => setGoal(g.key)}
+            activeOpacity={0.85}
+          >
+            <Text style={[styles.pillText, goal === g.key && styles.pillTextActive]}>
+              {g.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <Text style={styles.label}>Which days do you train?</Text>
+      <Text style={styles.hint}>Only these count toward your streak — rest days won't break it.</Text>
+      <View style={styles.dayRow}>
+        {DAYS.map((d) => (
+          <TouchableOpacity
+            key={d.key}
+            style={[styles.day, days.includes(d.key) && styles.dayActive]}
+            onPress={() => toggleDay(d.key)}
+            activeOpacity={0.85}
+          >
+            <Text style={[styles.dayText, days.includes(d.key) && styles.dayTextActive]}>
+              {d.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {error && <Text style={styles.error}>{error}</Text>}
+
+      <TouchableOpacity style={styles.btn} onPress={save} disabled={busy} activeOpacity={0.85}>
+        {busy ? (
+          <ActivityIndicator color={colors.primaryDark} />
+        ) : (
+          <Text style={styles.btnText}>START TRAINING</Text>
+        )}
+      </TouchableOpacity>
+    </ScrollView>
+  );
+}
+
+function Field({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+}) {
+  return (
+    <View style={styles.field}>
+      <Text style={styles.fieldLabel}>{label}</Text>
+      <TextInput
+        style={styles.input}
+        value={value}
+        onChangeText={onChange}
+        placeholder={placeholder}
+        placeholderTextColor={colors.textMuted}
+        keyboardType="numeric"
+      />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: colors.bg },
+  content: { padding: spacing.lg, gap: spacing.md },
+  h1: { color: colors.text, fontSize: 26, fontWeight: '800', marginTop: spacing.sm },
+  sub: { color: colors.textMuted, fontSize: 14, marginBottom: spacing.sm },
+  row: { flexDirection: 'row', gap: spacing.sm },
+  field: { flex: 1 },
+  fieldLabel: { color: colors.textMuted, fontSize: 11, fontWeight: '700', marginBottom: 6 },
+  input: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 12,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 12,
+    color: colors.text,
+    fontSize: 16,
+  },
+  label: { color: colors.text, fontSize: 15, fontWeight: '700', marginTop: spacing.sm },
+  hint: { color: colors.textMuted, fontSize: 12, marginTop: -spacing.xs },
+  pillRow: { flexDirection: 'row', gap: spacing.sm },
+  pill: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderRadius: 999,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  pillActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  pillText: { color: colors.textMuted, fontSize: 14, fontWeight: '700' },
+  pillTextActive: { color: colors.primaryDark },
+  dayRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
+  day: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  dayActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  dayText: { color: colors.textMuted, fontSize: 13, fontWeight: '700' },
+  dayTextActive: { color: colors.primaryDark },
+  error: { color: '#F87171', fontSize: 13 },
+  btn: {
+    backgroundColor: colors.primary,
+    borderRadius: 999,
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginTop: spacing.md,
+  },
+  btnText: { color: colors.primaryDark, fontSize: 14, fontWeight: '800', letterSpacing: 1 },
+});

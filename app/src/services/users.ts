@@ -44,3 +44,27 @@ export async function updateUser(
 export async function setTrainingDays(userId: string, days: Weekday[]): Promise<void> {
   await updateDoc(userRef(userId), { trainingDays: days });
 }
+
+/** Stats collected during first-run onboarding. */
+export interface OnboardingData {
+  age?: number;
+  heightCm?: number;
+  weightKg?: number;
+  goal?: User['goal'];
+  trainingDays: Weekday[];
+}
+
+/** Save onboarding answers and mark the profile onboarded. */
+export async function completeOnboarding(
+  userId: string,
+  data: OnboardingData,
+): Promise<void> {
+  await updateDoc(userRef(userId), {
+    age: data.age ?? null,
+    heightCm: data.heightCm ?? null,
+    weightKg: data.weightKg ?? null,
+    goal: data.goal ?? null,
+    trainingDays: data.trainingDays,
+    onboarded: true,
+  });
+}

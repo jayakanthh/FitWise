@@ -13,6 +13,8 @@ export interface User {
   heightCm?: number;
   goal?: Goal;
   createdAt: number; // epoch ms
+  onboarded?: boolean; // has the user completed the stats/schedule onboarding
+  weightKg?: number; // latest known bodyweight (also snapshotted in measurements)
   // streak — "scheduled training days" model
   trainingDays: Weekday[]; // e.g. [1,3,5] = Mon/Wed/Fri; only these days affect the streak
   currentStreak: number; // consecutive scheduled days trained

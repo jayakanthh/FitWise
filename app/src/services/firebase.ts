@@ -13,7 +13,12 @@ import { firebaseConfig } from './firebaseConfig';
 
 const app = initializeApp(firebaseConfig);
 
-/** Firebase Auth instance — sign in / sign up / current user. */
+/**
+ * Firebase Auth instance.
+ * TODO(persistence): on native this doesn't survive a full app restart. Firebase
+ * v12 changed the RN persistence API (getReactNativePersistence was removed);
+ * revisit with the v12-recommended approach so logins stick across restarts.
+ */
 export const auth = getAuth(app);
 
 /** Cloud Firestore instance — our database (see docs/DATA_MODEL.md). */
