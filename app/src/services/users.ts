@@ -59,12 +59,18 @@ export async function completeOnboarding(
   userId: string,
   data: OnboardingData,
 ): Promise<void> {
-  await updateDoc(userRef(userId), {
-    age: data.age ?? null,
-    heightCm: data.heightCm ?? null,
-    weightKg: data.weightKg ?? null,
-    goal: data.goal ?? null,
-    trainingDays: data.trainingDays,
-    onboarded: true,
-  });
+  // setDoc + merge (not updateDoc) so it works even if the profile doc didn't
+  // sync to the server yet — creates-or-updates instead of failing on "no doc".
+  await setDoc(
+    userRef(userId),
+    {
+      age: data.age ?? null,
+      heightCm: data.heightCm ?? null,
+      weightKg: data.weightKg ?? null,
+      goal: data.goal ?? null,
+      trainingDays: data.trainingDays,
+      onboarded: true,
+    },
+    { merge: true },
+  );
 }
