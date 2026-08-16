@@ -1,0 +1,11 @@
+{
+  "name": "ironsync-seed",
+  "private": true,
+  "description": "Dev-only script to seed mock users + a populated crew into Firestore",
+  "scripts": {
+    "seed": "node seedMockData.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.6.0"
+  }
+}
