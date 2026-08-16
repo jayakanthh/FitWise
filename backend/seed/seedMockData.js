@@ -16,6 +16,7 @@
 const admin = require('firebase-admin');
 const serviceAccount = require('./serviceAccount.json');
 
+console.log(`Using service account for project: ${serviceAccount.project_id}`);
 admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
 const db = admin.firestore();
 const auth = admin.auth();
@@ -40,12 +41,16 @@ const TODAY = new Date().toISOString().slice(0, 10);
 const e1rm = (kg, reps) => (reps <= 1 ? kg : Math.round(kg * (1 + reps / 30) * 10) / 10);
 
 async function upsertUser(u) {
+  process.stdout.write(`  • ${u.name} (${u.email}) … `);
   let uid;
   try {
     uid = (await auth.createUser({ email: u.email, password: PASSWORD, displayName: u.name })).uid;
+    console.log('created');
   } catch (e) {
-    if (e.code === 'auth/email-already-exists') uid = (await auth.getUserByEmail(u.email)).uid;
-    else throw e;
+    if (e.code === 'auth/email-already-exists') {
+      uid = (await auth.getUserByEmail(u.email)).uid;
+      console.log('already existed, reusing');
+    } else throw e;
   }
   await db.doc(`users/${uid}`).set({
     id: uid,
