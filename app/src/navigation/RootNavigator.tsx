@@ -3,7 +3,7 @@ import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { Text } from 'react-native';
 import { colors } from '../theme/colors';
 import HomeScreenContainer from '../screens/HomeScreenContainer';
-import WorkoutsScreen from '../screens/WorkoutsScreen';
+import WorkoutsStack from './WorkoutsStack';
 import NutritionScreen from '../screens/NutritionScreen';
 import GroupScreen from '../screens/GroupScreen';
 import ProfileScreen from '../screens/ProfileScreen';
@@ -45,7 +45,7 @@ export default function RootNavigator() {
         })}
       >
         <Tab.Screen name="Home" component={HomeScreenContainer} />
-        <Tab.Screen name="Workouts" component={WorkoutsScreen} />
+        <Tab.Screen name="Workouts" component={WorkoutsStack} />
         <Tab.Screen name="Nutrition" component={NutritionScreen} />
         <Tab.Screen name="Group" component={GroupScreen} />
         <Tab.Screen name="Profile" component={ProfileScreen} />

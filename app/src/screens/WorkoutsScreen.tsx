@@ -1,33 +1,50 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { colors, spacing } from '../theme/colors';
 import RoutineLibraryScreen from './RoutineLibraryScreen';
 import ExerciseLibraryScreen from './ExerciseLibraryScreen';
-import { initialRoutines } from '../data/mockData';
-import { getExercises } from '../services';
-import { exerciseToView } from '../services/adapters';
+import { getExercises, getMyPlans, getPublicPlans } from '../services';
+import { exerciseToView, planToRoutine } from '../services/adapters';
+import { useCurrentUser } from '../context/CurrentUser';
 import type { Routine, Exercise } from '../types/ironsync';
 
 type SubTab = 'routines' | 'exercises';
 
 /**
- * Workouts tab — hosts Routine Library + Exercise Library from iron-sync,
- * toggled with a segmented control (iron-sync used separate nav stack entries).
- * TEMP: onStartRoutine/onSaveRoutineToggle are no-ops — wire to LiveWorkoutScreen
- * and Firestore once those land.
+ * Workouts tab — Routine Library (real plans) + Exercise Library (real 873).
+ * The "Create" button pushes the PlanBuilder (see WorkoutsStack).
  */
-export default function WorkoutsScreen() {
+export default function WorkoutsScreen({
+  navigation,
+}: {
+  navigation: { navigate: (screen: string) => void };
+}) {
+  const { profile } = useCurrentUser();
   const [tab, setTab] = useState<SubTab>('routines');
-  const [routines, setRoutines] = useState(initialRoutines);
-  // Real exercise library (873 exercises from Firestore), mapped to the UI shape.
+  const [routines, setRoutines] = useState<Routine[]>([]);
   const [exercises, setExercises] = useState<Exercise[]>([]);
+
+  // Real exercise library (873), loaded once.
   useEffect(() => {
     getExercises().then((list) => setExercises(list.map(exerciseToView)));
   }, []);
 
-  const toggleSave = (id: string) => {
-    setRoutines((prev) => prev.map((r) => (r.id === id ? { ...r, isSaved: !r.isSaved } : r)));
-  };
+  // Real plans: mine (public + private) + everyone's public, de-duped. Refetched
+  // on focus so a plan you just created shows up when you come back from the builder.
+  const loadPlans = useCallback(async () => {
+    const uid = profile?.id;
+    const [mine, pub] = await Promise.all([uid ? getMyPlans(uid) : [], getPublicPlans()]);
+    const byId = new Map(pub.map((p) => [p.id, p]));
+    mine.forEach((p) => byId.set(p.id, p));
+    setRoutines([...byId.values()].map(planToRoutine));
+  }, [profile?.id]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadPlans();
+    }, [loadPlans]),
+  );
 
   return (
     <View style={styles.screen}>
@@ -49,15 +66,13 @@ export default function WorkoutsScreen() {
       {tab === 'routines' ? (
         <RoutineLibraryScreen
           routines={routines}
+          currentUserName={profile?.displayName}
           onStartRoutine={(_r: Routine) => {}}
-          onSaveRoutineToggle={toggleSave}
-          onCreateRoutineClick={() => {}}
+          onSaveRoutineToggle={() => {}}
+          onCreateRoutineClick={() => navigation.navigate('PlanBuilder')}
         />
       ) : (
-        <ExerciseLibraryScreen
-          exercises={exercises}
-          onSelectExercise={(_e: Exercise) => {}}
-        />
+        <ExerciseLibraryScreen exercises={exercises} onSelectExercise={(_e: Exercise) => {}} />
       )}
     </View>
   );

@@ -6,8 +6,14 @@
  * that the backend doesn't track yet fall back to the provided defaults.
  * Owner: jaikanth (backend) + Pruthvi (UI) — shared contract.
  */
-import type { Exercise as DomainExercise, User } from '../models';
-import type { Exercise as UIExercise, EquipmentType, MuscleGroup, UserProfile } from '../types/ironsync';
+import type { Exercise as DomainExercise, Plan, User } from '../models';
+import type {
+  Exercise as UIExercise,
+  EquipmentType,
+  MuscleGroup,
+  Routine as UIRoutine,
+  UserProfile,
+} from '../types/ironsync';
 
 /** Map a backend User onto the UI's UserProfile view-model. */
 export function userToProfile(u: User, defaults: UserProfile): UserProfile {
@@ -45,6 +51,21 @@ const EQUIP_MAP: Record<string, EquipmentType> = {
   cable: 'Cable',
   machine: 'Machine',
 };
+
+/** Map a backend Plan onto the UI's Routine view-model (for the routine list). */
+export function planToRoutine(p: Plan): UIRoutine {
+  return {
+    id: p.id,
+    name: p.name,
+    creator: p.createdByName ?? 'You',
+    daysPerWeek: p.days.length,
+    saves: 0,
+    isSaved: false,
+    isPublic: p.visibility === 'public',
+    category: 'Strength',
+    exercises: [],
+  };
+}
 
 /** Map a backend Exercise onto the UI's richer Exercise view-model. */
 export function exerciseToView(ex: DomainExercise): UIExercise {

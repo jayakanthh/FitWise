@@ -9,6 +9,7 @@ interface RoutineLibraryScreenProps {
   onStartRoutine: (routine: Routine) => void;
   onSaveRoutineToggle: (routineId: string) => void;
   onCreateRoutineClick: () => void;
+  currentUserName?: string; // whose routines count as "My Routines"
 }
 
 const TABS: ('My Routines' | 'Public Library' | 'Saved')[] = ['My Routines', 'Public Library', 'Saved'];
@@ -20,6 +21,7 @@ export default function RoutineLibraryScreen({
   onStartRoutine,
   onSaveRoutineToggle,
   onCreateRoutineClick,
+  currentUserName,
 }: RoutineLibraryScreenProps) {
   const [activeTab, setActiveTab] = useState<typeof TABS[number]>('Public Library');
   const [selectedFilter, setSelectedFilter] = useState('All');
@@ -27,7 +29,7 @@ export default function RoutineLibraryScreen({
   const [previewRoutine, setPreviewRoutine] = useState<Routine | null>(null);
 
   const filteredRoutines = routines.filter((r) => {
-    if (activeTab === 'My Routines' && r.creator !== 'Teja') return false;
+    if (activeTab === 'My Routines' && r.creator !== (currentUserName ?? '___none___')) return false;
     if (activeTab === 'Saved' && !r.isSaved) return false;
     if (selectedFilter !== 'All' && r.category !== selectedFilter) return false;
     if (
