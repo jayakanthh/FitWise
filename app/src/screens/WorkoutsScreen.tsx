@@ -68,9 +68,11 @@ export default function WorkoutsScreen({
           routines={routines}
           currentUserName={profile?.displayName}
           onStartRoutine={(r: Routine) => {
-            // Tapping your own plan opens it for editing.
+            // Your own plan → edit it. Someone else's public plan → adopt it.
             if (r.creator === profile?.displayName) {
               navigation.navigate('PlanBuilder', { planId: r.id });
+            } else {
+              navigation.navigate('AdoptPlan', { planId: r.id });
             }
           }}
           onSaveRoutineToggle={() => {}}
