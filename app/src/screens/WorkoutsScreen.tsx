@@ -48,6 +48,10 @@ export default function WorkoutsScreen({
 
   return (
     <View style={styles.screen}>
+      <TouchableOpacity style={styles.logBtn} onPress={() => navigation.navigate('LogWorkout')} activeOpacity={0.85}>
+        <Text style={styles.logBtnText}>🏋️  Log a Workout</Text>
+      </TouchableOpacity>
+
       <View style={styles.segmentWrap}>
         <TouchableOpacity
           style={[styles.segment, tab === 'routines' && styles.segmentActive]}
@@ -87,6 +91,15 @@ export default function WorkoutsScreen({
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
+  logBtn: {
+    backgroundColor: colors.primary,
+    marginHorizontal: spacing.md,
+    marginTop: spacing.md,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  logBtnText: { color: colors.primaryDark, fontSize: 15, fontWeight: '800' },
   segmentWrap: {
     flexDirection: 'row',
     margin: spacing.md,

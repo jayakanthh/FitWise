@@ -2,6 +2,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import WorkoutsScreen from '../screens/WorkoutsScreen';
 import PlanBuilderScreen from '../screens/PlanBuilderScreen';
 import AdoptPlanScreen from '../screens/AdoptPlanScreen';
+import LogWorkoutScreen from '../screens/LogWorkoutScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -18,6 +19,11 @@ export default function WorkoutsStack() {
       <Stack.Screen
         name="AdoptPlan"
         component={AdoptPlanScreen}
+        options={{ presentation: 'modal' }}
+      />
+      <Stack.Screen
+        name="LogWorkout"
+        component={LogWorkoutScreen}
         options={{ presentation: 'modal' }}
       />
     </Stack.Navigator>
