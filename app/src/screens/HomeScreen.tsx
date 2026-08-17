@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import {
-  Sparkles,
   Flame,
   Clock,
   Play,
@@ -49,21 +48,6 @@ export default function HomeScreen({
       <View>
         <Text style={styles.h1}>Welcome back, {user.name}</Text>
         <Text style={styles.subtext}>Ready to crush your goals today?</Text>
-      </View>
-
-      {/* AI Recommendation Match Card */}
-      <View style={styles.matchCard}>
-        <View style={styles.matchIconWrap}>
-          <Sparkles size={20} color={colors.primary} />
-        </View>
-        <Text style={styles.matchTitle}>Not sure what to train today?</Text>
-        <Text style={styles.matchDesc}>
-          Tell us how you feel, and we'll craft the perfect session.
-        </Text>
-        <TouchableOpacity style={styles.matchBtn} onPress={onFindMatchClick} activeOpacity={0.85}>
-          <Text style={styles.matchBtnText}>FIND MY MATCH</Text>
-          <ChevronRight size={16} color={colors.primaryDark} strokeWidth={3} />
-        </TouchableOpacity>
       </View>
 
       {/* Workout Category Pills */}
