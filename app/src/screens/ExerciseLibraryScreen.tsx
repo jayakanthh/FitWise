@@ -149,21 +149,23 @@ export default function ExerciseLibraryScreen({
                 </TouchableOpacity>
               </View>
 
-              <Image source={{ uri: activeDetail.image }} style={styles.modalImage} />
+              <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: spacing.md }}>
+                <Image source={{ uri: activeDetail.image }} style={styles.modalImage} />
 
-              <Text style={styles.modalDesc}>
-                {activeDetail.description ||
-                  'High activation compound isolation movement designed for hyper-specific muscle fiber overload and strength development.'}
-              </Text>
+                <Text style={styles.modalDesc}>
+                  {activeDetail.description ||
+                    'High activation compound isolation movement designed for hyper-specific muscle fiber overload and strength development.'}
+                </Text>
 
-              {!!activeDetail.tips && (
-                <View style={styles.tipsBox}>
-                  <Text style={styles.tipsHeader}>Form Cues:</Text>
-                  {activeDetail.tips.map((tip, idx) => (
-                    <Text key={idx} style={styles.tipText}>• {tip}</Text>
-                  ))}
-                </View>
-              )}
+                {!!activeDetail.tips && (
+                  <View style={styles.tipsBox}>
+                    <Text style={styles.tipsHeader}>Form Cues:</Text>
+                    {activeDetail.tips.map((tip, idx) => (
+                      <Text key={idx} style={styles.tipText}>• {tip}</Text>
+                    ))}
+                  </View>
+                )}
+              </ScrollView>
 
               <View style={styles.modalActions}>
                 <TouchableOpacity style={styles.modalCloseBtn} onPress={() => setActiveDetail(null)}>
@@ -260,6 +262,7 @@ const styles = StyleSheet.create({
   modalCard: {
     width: '100%',
     maxWidth: 400,
+    maxHeight: '85%',
     borderRadius: 24,
     backgroundColor: '#171b1f',
     borderWidth: 1,

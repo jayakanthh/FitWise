@@ -30,6 +30,7 @@ export default function RoutineLibraryScreen({
 
   const filteredRoutines = routines.filter((r) => {
     if (activeTab === 'My Routines' && r.creator !== (currentUserName ?? '___none___')) return false;
+    if (activeTab === 'Public Library' && !r.isPublic) return false;
     if (activeTab === 'Saved' && !r.isSaved) return false;
     if (selectedFilter !== 'All' && r.category !== selectedFilter) return false;
     if (
@@ -324,6 +325,7 @@ const styles = StyleSheet.create({
   modalCard: {
     width: '100%',
     maxWidth: 400,
+    maxHeight: '85%',
     borderRadius: 24,
     backgroundColor: '#171b1f',
     borderWidth: 1,
