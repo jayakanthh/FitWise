@@ -4,7 +4,7 @@
  */
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import type { User, Weekday } from '../models';
-import { db } from './firebase';
+import { auth, db } from './firebase';
 
 const userRef = (userId: string) => doc(db, 'users', userId);
 
@@ -54,23 +54,31 @@ export interface OnboardingData {
   trainingDays: Weekday[];
 }
 
-/** Save onboarding answers and mark the profile onboarded. */
+/**
+ * Save onboarding answers and mark the profile onboarded. Writes a COMPLETE
+ * profile (identity from Auth + streak/group defaults) via setDoc+merge, so it
+ * works whether or not a profile doc already exists — anyone reaching onboarding
+ * is new, so the zeroed streak/empty groups are correct.
+ */
 export async function completeOnboarding(
   userId: string,
   data: OnboardingData,
 ): Promise<void> {
-  // setDoc + merge (not updateDoc) so it works even if the profile doc didn't
-  // sync to the server yet — creates-or-updates instead of failing on "no doc".
-  await setDoc(
-    userRef(userId),
-    {
-      age: data.age ?? null,
-      heightCm: data.heightCm ?? null,
-      weightKg: data.weightKg ?? null,
-      goal: data.goal ?? null,
-      trainingDays: data.trainingDays,
-      onboarded: true,
-    },
-    { merge: true },
-  );
+  const fb = auth.currentUser;
+  const profile: User = {
+    id: userId,
+    displayName: fb?.displayName || fb?.email?.split('@')[0] || 'Lifter',
+    email: fb?.email ?? '',
+    createdAt: Date.now(),
+    age: data.age,
+    heightCm: data.heightCm,
+    weightKg: data.weightKg,
+    goal: data.goal,
+    trainingDays: data.trainingDays,
+    currentStreak: 0,
+    longestStreak: 0,
+    groupIds: [],
+    onboarded: true,
+  };
+  await setDoc(userRef(userId), profile, { merge: true });
 }
