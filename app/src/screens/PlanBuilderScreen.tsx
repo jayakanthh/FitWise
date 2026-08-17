@@ -15,7 +15,7 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { X } from 'lucide-react-native';
 import { colors, spacing } from '../theme/colors';
 import type { Exercise, PlanDay } from '../models';
-import { createPlan, currentUserId, getExercises, getPlan, updatePlan } from '../services';
+import { createPlan, currentUserId, getExercises, getPlan, setActivePlan, updatePlan } from '../services';
 import { useCurrentUser } from '../context/CurrentUser';
 
 interface BuilderExercise {
@@ -137,12 +137,13 @@ export default function PlanBuilderScreen({
       if (editPlanId) {
         await updatePlan(editPlanId, { name: name.trim(), days: planDays, visibility });
       } else {
-        await createPlan(uid, {
+        const newId = await createPlan(uid, {
           name: name.trim(),
           days: planDays,
           visibility,
           authorName: profile?.displayName,
         });
+        await setActivePlan(uid, newId); // start following the plan you just made
       }
       await refresh();
       navigation.goBack();

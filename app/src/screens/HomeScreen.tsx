@@ -22,6 +22,8 @@ interface HomeScreenProps {
   onStartTodayPlan: () => void;
   onSelectBuddyWorkout: (buddy: TrainingBuddy) => void;
   onCategorySelect?: (category: string) => void;
+  todayTitle?: string; // today's workout from the active plan
+  todaySubtitle?: string;
 }
 
 const CATEGORIES = [
@@ -39,6 +41,8 @@ export default function HomeScreen({
   onStartTodayPlan,
   onSelectBuddyWorkout,
   onCategorySelect,
+  todayTitle,
+  todaySubtitle,
 }: HomeScreenProps) {
   const [selectedCategory, setSelectedCategory] = useState('Gym');
 
@@ -141,8 +145,8 @@ export default function HomeScreen({
           </View>
           <View style={styles.planFooter}>
             <View>
-              <Text style={styles.planTitle}>Upper Body</Text>
-              <Text style={styles.planMeta}>5 exercises • 52 min</Text>
+              <Text style={styles.planTitle}>{todayTitle ?? 'Upper Body'}</Text>
+              <Text style={styles.planMeta}>{todaySubtitle ?? '5 exercises • 52 min'}</Text>
             </View>
             <TouchableOpacity style={styles.playBtn} onPress={onStartTodayPlan} activeOpacity={0.85}>
               <Play size={16} color={colors.primaryDark} fill={colors.primaryDark} />

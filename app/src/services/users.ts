@@ -45,6 +45,11 @@ export async function setTrainingDays(userId: string, days: Weekday[]): Promise<
   await updateDoc(userRef(userId), { trainingDays: days });
 }
 
+/** Set the plan the user is currently following (drives Home's "Today's Plan"). */
+export async function setActivePlan(userId: string, planId: string | null): Promise<void> {
+  await updateDoc(userRef(userId), { activePlanId: planId });
+}
+
 /** Stats collected during first-run onboarding. */
 export interface OnboardingData {
   age?: number;

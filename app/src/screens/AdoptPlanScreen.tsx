@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing } from '../theme/colors';
 import type { Plan } from '../models';
-import { createPlan, currentUserId, getPlan } from '../services';
+import { createPlan, currentUserId, getPlan, setActivePlan } from '../services';
 import { useCurrentUser } from '../context/CurrentUser';
 
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -66,12 +66,13 @@ export default function AdoptPlanScreen({
     setSaving(true);
     setError(null);
     try {
-      await createPlan(uid, {
+      const newId = await createPlan(uid, {
         name: plan.name,
         days: newDays,
         visibility: 'private',
         authorName: profile?.displayName,
       });
+      await setActivePlan(uid, newId); // follow the plan you just adopted
       await refresh();
       navigation.goBack();
     } catch (e: unknown) {
