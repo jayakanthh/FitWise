@@ -48,10 +48,13 @@ service cloud.firestore {
       allow update, delete: if isSignedIn() && resource.data.createdBy == request.auth.uid;
     }
 
-    // ---- Training plans: read built-in/shared plans; write only your own ----
+    // ---- Training plans: public plans are readable by all; private only by owner ----
     match /plans/{planId} {
-      allow read: if isSignedIn();
-      allow write: if isSignedIn() && request.resource.data.createdBy == request.auth.uid;
+      allow read: if isSignedIn()
+                  && (resource.data.visibility == 'public'
+                      || resource.data.createdBy == request.auth.uid);
+      allow create: if isSignedIn() && request.resource.data.createdBy == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.createdBy == request.auth.uid;
     }
 
     // ---- Groups (crews) ----

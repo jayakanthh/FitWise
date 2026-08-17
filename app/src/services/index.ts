@@ -8,6 +8,7 @@ export * from './users';
 export * from './profile';
 export * from './workouts';
 export * from './exercises';
+export * from './plans';
 export * from './groups';
 export * from './nutrition';
 export * from './streaks';

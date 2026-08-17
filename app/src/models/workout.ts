@@ -2,9 +2,16 @@
 export interface Exercise {
   id: string;
   name: string; // "Barbell Bench Press"
-  muscleGroup: string; // "chest"
-  equipment?: string; // "barbell"
-  gifUrl?: string; // demo animation (from seed source, e.g. ExerciseDB)
+  muscleGroup: string; // primary muscle, e.g. "chest"
+  secondaryMuscles?: string[];
+  equipment?: string | null; // "barbell"
+  category?: string | null; // "strength", "cardio", …
+  level?: string | null; // "beginner" | "intermediate" | "expert"
+  force?: string | null; // "push" | "pull" | "static"
+  mechanic?: string | null; // "compound" | "isolation"
+  instructions?: string[];
+  images?: string[]; // demo image URLs (from free-exercise-db)
+  gifUrl?: string | null; // library thumbnail (first image)
   isCustom: boolean;
   createdBy?: string | null; // userId, or null for built-in / seeded
 }
@@ -61,5 +68,8 @@ export interface Plan {
   id: string;
   name: string;
   createdBy?: string | null; // null = built-in
+  createdByName?: string; // denormalized author name, for public browsing
+  visibility: 'public' | 'private'; // public = other users can find & use it
+  createdAt?: number;
   days: PlanDay[];
 }
