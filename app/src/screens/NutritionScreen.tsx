@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native';
 import { colors, spacing } from '../theme/colors';
-import type { FoodLogEntry, Goal, NutritionTargets } from '../models';
+import type { FoodLogEntry, Goal, Meal, NutritionTargets } from '../models';
 import {
   currentUserId,
   deleteFood,
@@ -32,6 +32,13 @@ function suggest(goal: Goal | undefined, weightKg = 75): NutritionTargets {
   return { dailyCalories, proteinG, carbsG, fatG };
 }
 
+const MEALS: { key: Meal; label: string }[] = [
+  { key: 'breakfast', label: '🍳 Breakfast' },
+  { key: 'lunch', label: '🥗 Lunch' },
+  { key: 'dinner', label: '🍽️ Dinner' },
+  { key: 'snacks', label: '🍎 Snacks' },
+];
+
 export default function NutritionScreen() {
   const { profile } = useCurrentUser();
   const [targets, setTargets] = useState<NutritionTargets | null>(null);
@@ -45,6 +52,7 @@ export default function NutritionScreen() {
   const [tC, setTC] = useState('');
   const [tF, setTF] = useState('');
   // food add form
+  const [fMeal, setFMeal] = useState<Meal>('breakfast');
   const [fName, setFName] = useState('');
   const [fCal, setFCal] = useState('');
   const [fP, setFP] = useState('');
@@ -92,6 +100,7 @@ export default function NutritionScreen() {
     if (!uid || !fName.trim()) return;
     await logFood(uid, {
       date: todayISO(),
+      meal: fMeal,
       name: fName.trim(),
       calories: Number(fCal) || 0,
       proteinG: Number(fP) || 0,
@@ -153,6 +162,19 @@ export default function NutritionScreen() {
       {/* Add food */}
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Log food</Text>
+        <View style={styles.mealRow}>
+          {MEALS.map((m) => (
+            <TouchableOpacity
+              key={m.key}
+              style={[styles.mealChip, fMeal === m.key && styles.mealChipOn]}
+              onPress={() => setFMeal(m.key)}
+            >
+              <Text style={[styles.mealChipText, fMeal === m.key && styles.mealChipTextOn]}>
+                {m.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
         <TextInput
           style={styles.input}
           placeholder="Food name (e.g. Chicken & rice)"
@@ -175,24 +197,37 @@ export default function NutritionScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Today's log */}
+      {/* Today's log, grouped by meal */}
       <Text style={styles.section}>TODAY'S FOOD ({entries.length})</Text>
       {entries.length === 0 ? (
         <Text style={styles.empty}>Nothing logged yet.</Text>
       ) : (
-        entries.map((e) => (
-          <View key={e.id} style={styles.foodRow}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.foodName}>{e.name}</Text>
-              <Text style={styles.foodMeta}>
-                {e.calories} kcal · {e.proteinG}P {e.carbsG}C {e.fatG}F
-              </Text>
+        MEALS.map((m) => {
+          const mealEntries = entries.filter((e) => (e.meal ?? 'snacks') === m.key);
+          if (mealEntries.length === 0) return null;
+          const kcal = mealEntries.reduce((n, e) => n + e.calories, 0);
+          return (
+            <View key={m.key} style={{ gap: spacing.xs }}>
+              <View style={styles.mealHeader}>
+                <Text style={styles.mealHeaderText}>{m.label}</Text>
+                <Text style={styles.mealHeaderKcal}>{kcal} kcal</Text>
+              </View>
+              {mealEntries.map((e) => (
+                <View key={e.id} style={styles.foodRow}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.foodName}>{e.name}</Text>
+                    <Text style={styles.foodMeta}>
+                      {e.calories} kcal · {e.proteinG}P {e.carbsG}C {e.fatG}F
+                    </Text>
+                  </View>
+                  <TouchableOpacity onPress={() => remove(e.id)}>
+                    <Text style={styles.remove}>Remove</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
             </View>
-            <TouchableOpacity onPress={() => remove(e.id)}>
-              <Text style={styles.remove}>Remove</Text>
-            </TouchableOpacity>
-          </View>
-        ))
+          );
+        })
       )}
     </ScrollView>
   );
@@ -295,6 +330,26 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 15,
   },
+  mealRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
+  mealChip: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 7,
+    borderRadius: 999,
+    backgroundColor: colors.bg,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  mealChipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
+  mealChipText: { color: colors.textMuted, fontSize: 12, fontWeight: '700' },
+  mealChipTextOn: { color: colors.primaryDark },
+  mealHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: spacing.sm,
+  },
+  mealHeaderText: { color: colors.text, fontSize: 15, fontWeight: '800' },
+  mealHeaderKcal: { color: colors.textMuted, fontSize: 13, fontWeight: '600' },
   macroRow: { flexDirection: 'row', gap: spacing.sm },
   mini: { flex: 1, alignItems: 'center', gap: 2 },
   miniInput: {

@@ -154,44 +154,6 @@ export default function HomeScreen({
           </View>
         </TouchableOpacity>
       </View>
-
-      {/* TRAINING NOW Section */}
-      <View style={[styles.section, { marginBottom: spacing.xl }]}>
-        <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionHeader}>TRAINING NOW</Text>
-          <Text style={styles.dots}>•••</Text>
-        </View>
-
-        <View style={{ gap: spacing.sm }}>
-          {buddies.map((buddy) => (
-            <TouchableOpacity
-              key={buddy.id}
-              style={styles.buddyRow}
-              onPress={() => onSelectBuddyWorkout(buddy)}
-              activeOpacity={0.9}
-            >
-              <View style={styles.buddyLeft}>
-                <View>
-                  <Image source={{ uri: buddy.avatar }} style={styles.buddyAvatar} />
-                  <View style={styles.onlineDot} />
-                </View>
-                <View>
-                  <Text style={styles.buddyName}>{buddy.name}</Text>
-                  <Text style={styles.buddyActivity}>{buddy.activityTitle}</Text>
-                </View>
-              </View>
-              <View style={styles.buddyRight}>
-                {buddy.id === 'buddy-aryan' && (
-                  <View style={styles.liveDuoBadge}>
-                    <Text style={styles.liveDuoText}>LIVE DUO</Text>
-                  </View>
-                )}
-                <ChevronRight size={16} color={colors.textMuted} />
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
     </ScrollView>
   );
 }
