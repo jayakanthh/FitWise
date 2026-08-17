@@ -15,7 +15,7 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { X } from 'lucide-react-native';
 import { colors, spacing } from '../theme/colors';
 import type { Exercise, PlanDay } from '../models';
-import { createPlan, currentUserId, getExercises } from '../services';
+import { createPlan, currentUserId, getExercises, getPlan, updatePlan } from '../services';
 import { useCurrentUser } from '../context/CurrentUser';
 
 interface BuilderExercise {
@@ -35,7 +35,14 @@ const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
  * Plan builder — name a plan, add days, pick real exercises per day, choose
  * public/private, and save it. Pushed onto the Workouts stack from "Create".
  */
-export default function PlanBuilderScreen({ navigation }: { navigation: { goBack: () => void } }) {
+export default function PlanBuilderScreen({
+  navigation,
+  route,
+}: {
+  navigation: { goBack: () => void };
+  route?: { params?: { planId?: string } };
+}) {
+  const editPlanId = route?.params?.planId;
   const { profile, refresh } = useCurrentUser();
   const [name, setName] = useState('');
   const [visibility, setVisibility] = useState<'private' | 'public'>('private');
@@ -51,6 +58,30 @@ export default function PlanBuilderScreen({ navigation }: { navigation: { goBack
   const [pickerOpen, setPickerOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Edit mode: load the existing plan and resolve exercise names for display.
+  useEffect(() => {
+    if (!editPlanId) return;
+    (async () => {
+      const [plan, exList] = await Promise.all([getPlan(editPlanId), getExercises()]);
+      if (!plan) return;
+      const nameById = new Map(exList.map((e) => [e.id, e.name]));
+      setName(plan.name);
+      setVisibility(plan.visibility);
+      setActiveDay(0);
+      setDays(
+        plan.days.map((d) => ({
+          label: d.label,
+          exercises: d.exercises.map((e) => ({
+            exerciseId: e.exerciseId,
+            name: nameById.get(e.exerciseId) ?? e.exerciseId,
+            targetSets: e.targetSets,
+            targetReps: e.targetReps,
+          })),
+        })),
+      );
+    })();
+  }, [editPlanId]);
 
   const addDay = () =>
     setDays((d) => {
@@ -103,12 +134,16 @@ export default function PlanBuilderScreen({ navigation }: { navigation: { goBack
           targetReps: e.targetReps,
         })),
       }));
-      await createPlan(uid, {
-        name: name.trim(),
-        days: planDays,
-        visibility,
-        authorName: profile?.displayName,
-      });
+      if (editPlanId) {
+        await updatePlan(editPlanId, { name: name.trim(), days: planDays, visibility });
+      } else {
+        await createPlan(uid, {
+          name: name.trim(),
+          days: planDays,
+          visibility,
+          authorName: profile?.displayName,
+        });
+      }
       await refresh();
       navigation.goBack();
     } catch (e: unknown) {
@@ -126,7 +161,7 @@ export default function PlanBuilderScreen({ navigation }: { navigation: { goBack
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.cancel}>Cancel</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>New Plan</Text>
+        <Text style={styles.title}>{editPlanId ? 'Edit Plan' : 'New Plan'}</Text>
         <TouchableOpacity onPress={save} disabled={saving}>
           {saving ? (
             <ActivityIndicator color={colors.primary} />

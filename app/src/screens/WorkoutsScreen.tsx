@@ -18,7 +18,7 @@ type SubTab = 'routines' | 'exercises';
 export default function WorkoutsScreen({
   navigation,
 }: {
-  navigation: { navigate: (screen: string) => void };
+  navigation: { navigate: (screen: string, params?: { planId?: string }) => void };
 }) {
   const { profile } = useCurrentUser();
   const [tab, setTab] = useState<SubTab>('routines');
@@ -67,7 +67,12 @@ export default function WorkoutsScreen({
         <RoutineLibraryScreen
           routines={routines}
           currentUserName={profile?.displayName}
-          onStartRoutine={(_r: Routine) => {}}
+          onStartRoutine={(r: Routine) => {
+            // Tapping your own plan opens it for editing.
+            if (r.creator === profile?.displayName) {
+              navigation.navigate('PlanBuilder', { planId: r.id });
+            }
+          }}
           onSaveRoutineToggle={() => {}}
           onCreateRoutineClick={() => navigation.navigate('PlanBuilder')}
         />

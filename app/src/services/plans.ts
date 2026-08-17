@@ -61,6 +61,18 @@ export async function getPublicPlans(max = 50): Promise<Plan[]> {
     .slice(0, max);
 }
 
+/** Update an existing plan's name, days, and visibility. */
+export async function updatePlan(
+  planId: string,
+  data: { name: string; days: PlanDay[]; visibility: 'public' | 'private' },
+): Promise<void> {
+  await updateDoc(doc(db, 'plans', planId), {
+    name: data.name,
+    days: data.days,
+    visibility: data.visibility,
+  });
+}
+
 /** Flip a plan between public and private. */
 export async function setPlanVisibility(
   planId: string,
