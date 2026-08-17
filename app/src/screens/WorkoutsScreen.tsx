@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { colors, spacing } from '../theme/colors';
 import RoutineLibraryScreen from './RoutineLibraryScreen';
 import ExerciseLibraryScreen from './ExerciseLibraryScreen';
-import { initialRoutines, initialExercises } from '../data/mockData';
+import { initialRoutines } from '../data/mockData';
+import { getExercises } from '../services';
+import { exerciseToView } from '../services/adapters';
 import type { Routine, Exercise } from '../types/ironsync';
 
 type SubTab = 'routines' | 'exercises';
@@ -17,6 +19,11 @@ type SubTab = 'routines' | 'exercises';
 export default function WorkoutsScreen() {
   const [tab, setTab] = useState<SubTab>('routines');
   const [routines, setRoutines] = useState(initialRoutines);
+  // Real exercise library (873 exercises from Firestore), mapped to the UI shape.
+  const [exercises, setExercises] = useState<Exercise[]>([]);
+  useEffect(() => {
+    getExercises().then((list) => setExercises(list.map(exerciseToView)));
+  }, []);
 
   const toggleSave = (id: string) => {
     setRoutines((prev) => prev.map((r) => (r.id === id ? { ...r, isSaved: !r.isSaved } : r)));
@@ -48,7 +55,7 @@ export default function WorkoutsScreen() {
         />
       ) : (
         <ExerciseLibraryScreen
-          exercises={initialExercises}
+          exercises={exercises}
           onSelectExercise={(_e: Exercise) => {}}
         />
       )}
