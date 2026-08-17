@@ -18,6 +18,7 @@ import {
   leaveGroup,
 } from '../services';
 import { useCurrentUser } from '../context/CurrentUser';
+import FriendsPanel from '../components/FriendsPanel';
 
 /**
  * Real crew screen, wired to the groups backend:
@@ -33,6 +34,7 @@ export default function GroupScreen() {
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [tab, setTab] = useState<'crews' | 'friends'>('crews');
 
   const groupKey = (profile?.groupIds ?? []).join(',');
 
@@ -91,17 +93,31 @@ export default function GroupScreen() {
     await refresh();
   };
 
-  if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator color={colors.primary} />
-      </View>
-    );
-  }
-
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <Text style={styles.h1}>Your Crews</Text>
+    <View style={styles.screen}>
+      <View style={styles.tabRow}>
+        {(['crews', 'friends'] as const).map((t) => (
+          <TouchableOpacity
+            key={t}
+            style={[styles.tab, tab === t && styles.tabOn]}
+            onPress={() => setTab(t)}
+          >
+            <Text style={[styles.tabText, tab === t && styles.tabTextOn]}>
+              {t === 'crews' ? 'Crews' : 'Friends'}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {tab === 'friends' ? (
+        <FriendsPanel />
+      ) : loading ? (
+        <View style={styles.center}>
+          <ActivityIndicator color={colors.primary} />
+        </View>
+      ) : (
+        <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+          <Text style={styles.h1}>Your Crews</Text>
 
       {groups.length === 0 && (
         <Text style={styles.sub}>
@@ -180,12 +196,28 @@ export default function GroupScreen() {
           </TouchableOpacity>
         </View>
       </View>
-    </ScrollView>
+        </ScrollView>
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
+  tabRow: {
+    flexDirection: 'row',
+    margin: spacing.md,
+    marginBottom: 0,
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: 12,
+    padding: 3,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  tab: { flex: 1, paddingVertical: 8, borderRadius: 9, alignItems: 'center' },
+  tabOn: { backgroundColor: colors.primary },
+  tabText: { color: colors.textMuted, fontSize: 13, fontWeight: '700' },
+  tabTextOn: { color: colors.primaryDark },
   center: { flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' },
   content: { padding: spacing.md, gap: spacing.md },
   h1: { color: colors.text, fontSize: 24, fontWeight: '800', marginTop: spacing.sm },

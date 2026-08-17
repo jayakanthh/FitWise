@@ -8,5 +8,6 @@
 
 export * from './user';
 export * from './workout';
+export * from './friend';
 export * from './group';
 export * from './nutrition';

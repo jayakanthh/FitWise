@@ -10,6 +10,7 @@ export * from './workouts';
 export * from './exercises';
 export * from './plans';
 export * from './groups';
+export * from './friends';
 export * from './nutrition';
 export * from './streaks';
 export * from './dates';
