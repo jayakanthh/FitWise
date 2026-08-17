@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  Image,
   Modal,
   ScrollView,
   StyleSheet,
@@ -28,6 +29,8 @@ interface BuilderDay {
   exercises: BuilderExercise[];
 }
 
+const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
 /**
  * Plan builder — name a plan, add days, pick real exercises per day, choose
  * public/private, and save it. Pushed onto the Workouts stack from "Create".
@@ -36,7 +39,14 @@ export default function PlanBuilderScreen({ navigation }: { navigation: { goBack
   const { profile, refresh } = useCurrentUser();
   const [name, setName] = useState('');
   const [visibility, setVisibility] = useState<'private' | 'public'>('private');
-  const [days, setDays] = useState<BuilderDay[]>([{ label: 'Day 1', exercises: [] }]);
+  // Seed the days from the user's onboarding training schedule (Mon/Wed/Fri…),
+  // falling back to a single "Day 1" if they didn't set any.
+  const [days, setDays] = useState<BuilderDay[]>(() => {
+    const td = [...(profile?.trainingDays ?? [])].sort((a, b) => a - b);
+    return td.length
+      ? td.map((d) => ({ label: DAY_LABELS[d], exercises: [] }))
+      : [{ label: 'Day 1', exercises: [] }];
+  });
   const [activeDay, setActiveDay] = useState(0);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -48,21 +58,22 @@ export default function PlanBuilderScreen({ navigation }: { navigation: { goBack
       return [...d, { label: `Day ${d.length + 1}`, exercises: [] }];
     });
 
-  const addExercise = (ex: Exercise) =>
+  // Add if not on this day, remove if it is (tap ✓ to unselect).
+  const toggleExercise = (ex: Exercise) =>
     setDays((d) =>
-      d.map((day, i) =>
-        i === activeDay
-          ? day.exercises.some((e) => e.exerciseId === ex.id)
-            ? day // already added
-            : {
-                ...day,
-                exercises: [
-                  ...day.exercises,
-                  { exerciseId: ex.id, name: ex.name, targetSets: 3, targetReps: 10 },
-                ],
-              }
-          : day,
-      ),
+      d.map((day, i) => {
+        if (i !== activeDay) return day;
+        const exists = day.exercises.some((e) => e.exerciseId === ex.id);
+        return exists
+          ? { ...day, exercises: day.exercises.filter((e) => e.exerciseId !== ex.id) }
+          : {
+              ...day,
+              exercises: [
+                ...day.exercises,
+                { exerciseId: ex.id, name: ex.name, targetSets: 3, targetReps: 10 },
+              ],
+            };
+      }),
     );
 
   const removeExercise = (exerciseId: string) =>
@@ -201,7 +212,7 @@ export default function PlanBuilderScreen({ navigation }: { navigation: { goBack
       <ExercisePicker
         visible={pickerOpen}
         onClose={() => setPickerOpen(false)}
-        onPick={addExercise}
+        onToggle={toggleExercise}
         addedIds={current.exercises.map((e) => e.exerciseId)}
       />
     </SafeAreaView>
@@ -212,12 +223,12 @@ export default function PlanBuilderScreen({ navigation }: { navigation: { goBack
 function ExercisePicker({
   visible,
   onClose,
-  onPick,
+  onToggle,
   addedIds,
 }: {
   visible: boolean;
   onClose: () => void;
-  onPick: (ex: Exercise) => void;
+  onToggle: (ex: Exercise) => void;
   addedIds: string[];
 }) {
   const [all, setAll] = useState<Exercise[]>([]);
@@ -266,17 +277,25 @@ function ExercisePicker({
             initialNumToRender={20}
             renderItem={({ item }) => {
               const added = addedIds.includes(item.id);
+              const thumb = item.gifUrl ?? item.images?.[0];
               return (
                 <TouchableOpacity
                   style={[styles.pickRow, added && styles.pickRowOn]}
-                  onPress={() => onPick(item)}
-                  disabled={added}
+                  onPress={() => onToggle(item)}
                 >
+                  {thumb ? (
+                    <Image source={{ uri: thumb }} style={styles.thumb} />
+                  ) : (
+                    <View style={styles.thumb} />
+                  )}
                   <View style={{ flex: 1 }}>
                     <Text style={styles.exName}>{item.name}</Text>
-                    <Text style={styles.exMeta}>{item.muscleGroup}</Text>
+                    <Text style={styles.exMeta}>
+                      {item.muscleGroup}
+                      {item.equipment ? ` · ${item.equipment}` : ''}
+                    </Text>
                   </View>
-                  <Text style={styles.pickAdd}>{added ? '✓' : '+'}</Text>
+                  <Text style={[styles.pickAdd, added && styles.pickAddOn]}>{added ? '✓' : '+'}</Text>
                 </TouchableOpacity>
               );
             }}
@@ -371,12 +390,20 @@ const styles = StyleSheet.create({
   pickRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: spacing.sm,
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 12,
-    padding: spacing.md,
+    padding: spacing.sm,
   },
-  pickRowOn: { opacity: 0.5 },
-  pickAdd: { color: colors.primary, fontSize: 22, fontWeight: '800' },
+  pickRowOn: { borderColor: colors.primary },
+  thumb: {
+    width: 52,
+    height: 52,
+    borderRadius: 8,
+    backgroundColor: colors.surfaceAlt,
+  },
+  pickAdd: { color: colors.textMuted, fontSize: 22, fontWeight: '800', width: 28, textAlign: 'center' },
+  pickAddOn: { color: colors.primary },
 });
