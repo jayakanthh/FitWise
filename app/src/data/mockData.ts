@@ -1,4 +1,4 @@
-import type { UserProfile, TrainingBuddy, Exercise, Routine } from '../types/ironsync';
+import type { UserProfile, TrainingBuddy, Exercise, Routine, WorkoutHistoryItem } from '../types/ironsync';
 
 /**
  * Mock/seed data ported from iron-sync (initialData.ts).
@@ -306,4 +306,107 @@ export const initialRoutines: Routine[] = [
     ],
   },
 ];
+
+export interface WorkoutHistoryItemWithCreator extends WorkoutHistoryItem {
+  creatorName?: string;
+}
+
+export const initialWorkoutHistory: WorkoutHistoryItemWithCreator[] = [
+  {
+    id: 'hist-1',
+    date: '2026-08-17',
+    displayDate: 'Yesterday • 6:30 PM',
+    title: 'Chest & Triceps Hypertrophy',
+    mode: 'duo',
+    durationMinutes: 52,
+    totalSets: 24,
+    volumeKg: 8420,
+    exercisesCount: 4,
+    partnerNames: ['Aryan'],
+    prCount: 1,
+    creatorName: 'Teja',
+    notes: 'Incredible synergy on the Smith Incline. Shared spotting made 60kg feel light.',
+    exercises: [
+      {
+        name: 'Smith Incline Press',
+        muscleGroup: 'Chest',
+        sets: [
+          { setNumber: 1, kg: 57.5, reps: 10, rpe: 8, completed: true },
+          { setNumber: 2, kg: 60, reps: 10, rpe: 9, completed: true, isPR: true },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'hist-2',
+    date: '2026-08-16',
+    displayDate: '2 days ago • 5:15 PM',
+    title: 'Deadlift PR Day',
+    mode: 'solo',
+    durationMinutes: 45,
+    totalSets: 15,
+    volumeKg: 9500,
+    exercisesCount: 3,
+    prCount: 2,
+    creatorName: 'Aryan',
+    notes: 'Finally pulled 180kg for a double! Lat tension was perfect.',
+    exercises: [
+      {
+        name: 'Deadlift',
+        muscleGroup: 'Back',
+        sets: [
+          { setNumber: 1, kg: 140, reps: 5, completed: true },
+          { setNumber: 2, kg: 180, reps: 2, completed: true, isPR: true },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'hist-3',
+    date: '2026-08-15',
+    displayDate: '3 days ago • 8:00 AM',
+    title: 'Leg Day Squat Focus',
+    mode: 'solo',
+    durationMinutes: 60,
+    totalSets: 20,
+    volumeKg: 10200,
+    exercisesCount: 5,
+    prCount: 0,
+    creatorName: 'Teja',
+    notes: 'Focus on depth and pause at the bottom.',
+    exercises: [
+      {
+        name: 'Barbell Back Squat',
+        muscleGroup: 'Legs',
+        sets: [
+          { setNumber: 1, kg: 100, reps: 8, completed: true },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'hist-4',
+    date: '2026-08-14',
+    displayDate: '4 days ago • 7:00 PM',
+    title: 'Heavy Overhead Press',
+    mode: 'solo',
+    durationMinutes: 50,
+    totalSets: 18,
+    volumeKg: 5400,
+    exercisesCount: 4,
+    prCount: 1,
+    creatorName: 'Rahul',
+    notes: 'Shoulder stability feeling great today.',
+    exercises: [
+      {
+        name: 'Overhead Press',
+        muscleGroup: 'Shoulders',
+        sets: [
+          { setNumber: 1, kg: 60, reps: 5, completed: true, isPR: true },
+        ],
+      },
+    ],
+  },
+];
+
 

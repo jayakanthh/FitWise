@@ -3,6 +3,7 @@ import WorkoutsScreen from '../screens/WorkoutsScreen';
 import PlanBuilderScreen from '../screens/PlanBuilderScreen';
 import AdoptPlanScreen from '../screens/AdoptPlanScreen';
 import LogWorkoutScreen from '../screens/LogWorkoutScreen';
+import ProgressAnalyticsScreen from '../screens/ProgressAnalyticsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -25,6 +26,10 @@ export default function WorkoutsStack() {
         name="LogWorkout"
         component={LogWorkoutScreen}
         options={{ presentation: 'modal' }}
+      />
+      <Stack.Screen
+        name="ProgressAnalytics"
+        component={ProgressAnalyticsScreen}
       />
     </Stack.Navigator>
   );

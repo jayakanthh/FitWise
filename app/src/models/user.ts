@@ -21,8 +21,10 @@ export interface User {
   currentStreak: number; // consecutive scheduled days trained
   longestStreak: number;
   lastTrainedDate?: string; // YYYY-MM-DD
-  // social — a user can belong to several crews
+// social — a user can belong to several crews AND communities (separate concepts)
   groupIds: string[];
+  communityIds?: string[]; // communities (gym, college, etc.) — distinct from crews
+  savedPlanIds?: string[]; // public plans the user has bookmarked (Workouts > Saved tab)
 }
 
 /** A body measurement snapshot over time. */

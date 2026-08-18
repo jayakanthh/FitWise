@@ -36,6 +36,16 @@ export interface Workout {
   entries: WorkoutEntry[];
   notes?: string;
   createdAt: number;
+  /** Who can see this workout in social/community feeds. Defaults to 'only_me' if not set. */
+  visibility?: 'everyone' | 'followers' | 'friends' | 'community' | 'only_me';
+  /** Linked duo/group session ID if this was a shared workout. */
+  sessionId?: string;
+  /** Name of the plan/workout used (denormalized for quick display). */
+  planName?: string;
+  /** Duration in minutes (set at completion). */
+  durationMinutes?: number;
+  /** Total volume in kg (set at completion). */
+  totalVolumeKg?: number;
 }
 
 /** Personal record for one exercise (one doc per exercise per user). Ranked by estimated1RM. */
@@ -72,4 +82,5 @@ export interface Plan {
   visibility: 'public' | 'private'; // public = other users can find & use it
   createdAt?: number;
   days: PlanDay[];
+  savedCount?: number; // how many users have bookmarked this (public plans only)
 }

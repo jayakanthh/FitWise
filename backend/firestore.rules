@@ -55,6 +55,11 @@ service cloud.firestore {
                       || resource.data.createdBy == request.auth.uid);
       allow create: if isSignedIn() && request.resource.data.createdBy == request.auth.uid;
       allow update, delete: if isSignedIn() && resource.data.createdBy == request.auth.uid;
+      // Saving someone else's public plan bumps a shared counter — allow ANY
+      // signed-in user to touch this one field only (owner already covered above).
+      allow update: if isSignedIn()
+                    && resource.data.visibility == 'public'
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['savedCount']);
     }
 
     // ---- Friends (1-to-1) ----

@@ -2,7 +2,7 @@
  * Users service — profile create / read / update.
  * Owner: jaikanth (backend).
  */
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { arrayRemove, arrayUnion, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import type { User, Weekday } from '../models';
 import { auth, db } from './firebase';
 
@@ -48,6 +48,13 @@ export async function setTrainingDays(userId: string, days: Weekday[]): Promise<
 /** Set the plan the user is currently following (drives Home's "Today's Plan"). */
 export async function setActivePlan(userId: string, planId: string | null): Promise<void> {
   await updateDoc(userRef(userId), { activePlanId: planId });
+}
+
+/** Bookmark/unbookmark a public plan (Workouts > Saved tab). Own doc only — always allowed. */
+export async function toggleSavedPlan(userId: string, planId: string, save: boolean): Promise<void> {
+  await updateDoc(userRef(userId), {
+    savedPlanIds: save ? arrayUnion(planId) : arrayRemove(planId),
+  });
 }
 
 /** Stats collected during first-run onboarding. */

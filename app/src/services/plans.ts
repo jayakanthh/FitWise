@@ -11,6 +11,7 @@ import {
   doc,
   getDoc,
   getDocs,
+  increment,
   query,
   setDoc,
   updateDoc,
@@ -94,6 +95,16 @@ export async function clonePlan(userId: string, plan: Plan, authorName?: string)
 /** Delete a plan you own. */
 export async function deletePlan(planId: string): Promise<void> {
   await deleteDoc(doc(db, 'plans', planId));
+}
+
+/**
+ * Bump a public plan's save counter (any signed-in user, not just the owner —
+ * see the dedicated firestore.rules clause that only permits touching this
+ * one field). Called alongside toggleSavedPlan (users.ts) when someone
+ * saves/unsaves a plan.
+ */
+export async function adjustPlanSavedCount(planId: string, delta: 1 | -1): Promise<void> {
+  await updateDoc(doc(db, 'plans', planId), { savedCount: increment(delta) });
 }
 
 const byNewest = (a: Plan, b: Plan) => (b.createdAt ?? 0) - (a.createdAt ?? 0);

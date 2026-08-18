@@ -53,14 +53,14 @@ const EQUIP_MAP: Record<string, EquipmentType> = {
 };
 
 /** Map a backend Plan onto the UI's Routine view-model (for the routine list). */
-export function planToRoutine(p: Plan): UIRoutine {
+export function planToRoutine(p: Plan, isSaved = false): UIRoutine {
   return {
     id: p.id,
     name: p.name,
     creator: p.createdByName ?? 'You',
     daysPerWeek: p.days.length,
-    saves: 0,
-    isSaved: false,
+    saves: p.savedCount ?? 0,
+    isSaved,
     isPublic: p.visibility === 'public',
     category: 'Strength',
     exercises: [],

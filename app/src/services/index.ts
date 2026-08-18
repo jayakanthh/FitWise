@@ -14,4 +14,7 @@ export * from './friends';
 export * from './nutrition';
 export * from './streaks';
 export * from './dates';
+export * from './community';
+export * from './follow';
+export * from './duoSession';
 export { auth, db } from './firebase';

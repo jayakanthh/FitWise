@@ -4,7 +4,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { colors, spacing } from '../theme/colors';
 import RoutineLibraryScreen from './RoutineLibraryScreen';
 import ExerciseLibraryScreen from './ExerciseLibraryScreen';
-import { getExercises, getMyPlans, getPublicPlans } from '../services';
+import { adjustPlanSavedCount, getExercises, getMyPlans, getPublicPlans, toggleSavedPlan } from '../services';
 import { exerciseToView, planToRoutine } from '../services/adapters';
 import { useCurrentUser } from '../context/CurrentUser';
 import type { Routine, Exercise } from '../types/ironsync';
@@ -13,14 +13,16 @@ type SubTab = 'routines' | 'exercises';
 
 /**
  * Workouts tab — Routine Library (real plans) + Exercise Library (real 873).
- * The "Create" button pushes the PlanBuilder (see WorkoutsStack).
+ * The "Create" button pushes the PlanBuilder (see WorkoutsStack). Saving a
+ * routine persists to the signed-in user's profile (savedPlanIds) and bumps
+ * the plan's shared savedCount — both real writes, not local-only state.
  */
 export default function WorkoutsScreen({
   navigation,
 }: {
   navigation: { navigate: (screen: string, params?: { planId?: string }) => void };
 }) {
-  const { profile } = useCurrentUser();
+  const { profile, refresh } = useCurrentUser();
   const [tab, setTab] = useState<SubTab>('routines');
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [exercises, setExercises] = useState<Exercise[]>([]);
@@ -37,14 +39,43 @@ export default function WorkoutsScreen({
     const [mine, pub] = await Promise.all([uid ? getMyPlans(uid) : [], getPublicPlans()]);
     const byId = new Map(pub.map((p) => [p.id, p]));
     mine.forEach((p) => byId.set(p.id, p));
-    setRoutines([...byId.values()].map(planToRoutine));
-  }, [profile?.id]);
+    const savedIds = new Set(profile?.savedPlanIds ?? []);
+    setRoutines([...byId.values()].map((p) => planToRoutine(p, savedIds.has(p.id))));
+  }, [profile?.id, profile?.savedPlanIds]);
 
   useFocusEffect(
     useCallback(() => {
       loadPlans();
     }, [loadPlans]),
   );
+
+  const handleSaveToggle = async (routineId: string) => {
+    if (!profile) return;
+    const target = routines.find((r) => r.id === routineId);
+    if (!target) return;
+    const nextSaved = !target.isSaved;
+
+    // Optimistic UI update — flip immediately, backend calls confirm in background.
+    setRoutines((prev) =>
+      prev.map((r) =>
+        r.id === routineId ? { ...r, isSaved: nextSaved, saves: r.saves + (nextSaved ? 1 : -1) } : r,
+      ),
+    );
+    try {
+      await Promise.all([
+        toggleSavedPlan(profile.id, routineId, nextSaved),
+        adjustPlanSavedCount(routineId, nextSaved ? 1 : -1),
+      ]);
+      await refresh(); // keeps profile.savedPlanIds in sync for other screens
+    } catch {
+      // Revert on failure.
+      setRoutines((prev) =>
+        prev.map((r) =>
+          r.id === routineId ? { ...r, isSaved: !nextSaved, saves: r.saves + (nextSaved ? -1 : 1) } : r,
+        ),
+      );
+    }
+  };
 
   return (
     <View style={styles.screen}>
@@ -79,7 +110,7 @@ export default function WorkoutsScreen({
               navigation.navigate('AdoptPlan', { planId: r.id });
             }
           }}
-          onSaveRoutineToggle={() => {}}
+          onSaveRoutineToggle={handleSaveToggle}
           onCreateRoutineClick={() => navigation.navigate('PlanBuilder')}
         />
       ) : (
