@@ -14,12 +14,19 @@ export interface Exercise {
   gifUrl?: string | null; // library thumbnail (first image)
   isCustom: boolean;
   createdBy?: string | null; // userId, or null for built-in / seeded
+  legacyIds?: string[]; // for migrating old IDs without breaking history
+  trackingType?: string;
 }
 
 /** One set within an exercise entry. */
 export interface WorkoutSet {
   reps: number;
   weightKg: number;
+  setType?: 'warmup' | 'working' | 'drop' | 'superset' | 'giant_set';
+  groupId?: string;
+  groupType?: string;
+  parentSetId?: string;
+  isCompleted?: boolean;
 }
 
 /** One exercise done in a workout, with its sets. */
@@ -46,6 +53,9 @@ export interface Workout {
   durationMinutes?: number;
   /** Total volume in kg (set at completion). */
   totalVolumeKg?: number;
+  workoutType?: 'solo' | 'duo' | 'group';
+  duoPartnerId?: string;
+  duoPartnerName?: string;
 }
 
 /** Personal record for one exercise (one doc per exercise per user). Ranked by estimated1RM. */

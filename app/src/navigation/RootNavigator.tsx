@@ -2,22 +2,27 @@ import React, { useRef, useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer, DarkTheme, createNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { View, TouchableOpacity, StyleSheet, Modal } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Modal, Text } from 'react-native';
 import { Home, Dumbbell, Users, Utensils, Plus, X, Award, TrendingUp, User, Calendar } from 'lucide-react-native';
 import { colors, radius } from '../theme/colors';
 import { Typography } from '../components/ui/Typography';
 
-import HomeScreenContainer from '../screens/HomeScreenContainer';
+import HomeScreenContainer from '../screens/home/HomeScreenContainer';
 import WorkoutsStack from './WorkoutsStack';
-import NutritionScreen from '../screens/NutritionScreen';
-import ProgressAnalyticsScreen from '../screens/ProgressAnalyticsScreen';
-import ProfileScreen from '../screens/ProfileScreen';
+import NutritionScreen from '../screens/nutrition/NutritionScreen';
+import ProgressAnalyticsScreen from '../screens/measurements/ProgressAnalyticsScreen';
+import MeStack from './MeStack';
 import CommunityStack from './CommunityStack';
 import DuoStack from './DuoStack';
-import GroupWorkoutLobbyScreen from '../screens/GroupWorkoutLobbyScreen';
-import GroupWorkoutScreen from '../screens/GroupWorkoutScreen';
+import GroupWorkoutLobbyScreen from '../screens/duo/GroupWorkoutLobbyScreen';
+import GroupWorkoutScreen from '../screens/duo/GroupWorkoutScreen';
+import NotificationsModal from '../screens/settings/NotificationsModal';
+import StrengthPRScreen from '../screens/measurements/StrengthPRScreen';
+import UserProfileScreen from '../screens/community/UserProfileScreen';
+import WorkoutDetailScreen from '../screens/workouts/WorkoutDetailScreen';
 
 export const navigationRef = createNavigationContainerRef<any>();
+
 
 const Tab = createBottomTabNavigator();
 const RootStack = createNativeStackNavigator();
@@ -42,80 +47,51 @@ const FloatingActionMenu = ({ visible, onClose, navigation }: { visible: boolean
       <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={onClose}>
         <View style={styles.fabMenuContainer}>
           <View style={styles.fabMenuHeader}>
-            <Typography variant="captionSmall" color={colors.textMuted}>Quick Actions Hub</Typography>
+            <Typography variant="caption" color={colors.textMuted}>QUICK ACTIONS</Typography>
             <TouchableOpacity onPress={onClose}>
-              <X size={16} color={colors.textMuted} />
+              <X size={18} color={colors.textMuted} />
             </TouchableOpacity>
           </View>
 
-          {/* 1. Live Duo Workout */}
+          {/* Primary CTA: Start Workout */}
           <TouchableOpacity
-            style={styles.fabMenuItem}
+            style={styles.fabPrimaryItem}
+            activeOpacity={0.9}
             onPress={() => {
               onClose();
-              navigation.navigate('Community');
+              // Launch empty free-form workout logger with timer started immediately
+              navigation.navigate('Workouts', {
+                screen: 'LogWorkout',
+                params: { exercises: [], sourceLabel: 'Free Workout' }
+              });
             }}
           >
-            <View style={[styles.fabIconBox, { backgroundColor: '#1a2b23' }]}>
-              <Dumbbell size={16} color={colors.primary} />
-            </View>
-            <View>
-              <Typography variant="captionSmall" color={colors.text}>Start Duo / Group Workout</Typography>
-              <Typography style={{ fontSize: 10, color: colors.textMuted }}>Invite partners via Spaces / Friends</Typography>
+            <View style={styles.fabPrimaryLeft}>
+              <Dumbbell size={22} color={colors.primaryDark} strokeWidth={2.5} />
+              <View style={{ marginLeft: 12 }}>
+                <Text style={styles.fabPrimaryTitle}>🏋️ START WORKOUT</Text>
+                <Text style={styles.fabPrimarySubtitle}>Start a workout now • Timer starts immediately</Text>
+              </View>
             </View>
           </TouchableOpacity>
 
-          {/* 2. AI Food & Nutrition Logger */}
+          {/* Secondary CTA: Track Food */}
           <TouchableOpacity
-            style={styles.fabMenuItem}
+            style={styles.fabSecondaryItem}
+            activeOpacity={0.8}
             onPress={() => {
               onClose();
               navigation.navigate('Nutrition');
             }}
           >
-            <View style={[styles.fabIconBox, { backgroundColor: 'rgba(249, 115, 22, 0.2)' }]}>
-              <Utensils size={16} color={colors.warning} />
+            <View style={[styles.fabIconBox, { backgroundColor: 'rgba(249, 115, 22, 0.15)' }]}>
+              <Utensils size={18} color={colors.warning} />
             </View>
-            <View>
-              <Typography variant="captionSmall" color={colors.text}>AI Food & Macro Logger</Typography>
-              <Typography style={{ fontSize: 10, color: colors.textMuted }}>Natural language meal recognition</Typography>
-            </View>
-          </TouchableOpacity>
-
-          {/* 3. Friends & Live Gym */}
-          <TouchableOpacity
-            style={styles.fabMenuItem}
-            onPress={() => {
-              onClose();
-              navigation.navigate('Community');
-            }}
-          >
-            <View style={[styles.fabIconBox, { backgroundColor: 'rgba(6, 182, 212, 0.2)' }]}>
-              <Users size={16} color="#06b6d4" />
-            </View>
-            <View>
-              <Typography variant="captionSmall" color={colors.text}>Friends & Live Spaces</Typography>
-              <Typography style={{ fontSize: 10, color: colors.textMuted }}>Who's training now & requests</Typography>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.fabSecondaryTitle}>🍎 TRACK FOOD</Text>
+              <Text style={styles.fabSecondarySubtitle}>Log your food, custom products and macros</Text>
             </View>
           </TouchableOpacity>
-
-          {/* 4. Body Analytics */}
-          <TouchableOpacity
-            style={styles.fabMenuItem}
-            onPress={() => {
-              onClose();
-              navigation?.navigate('Progress');
-            }}
-          >
-            <View style={[styles.fabIconBox, { backgroundColor: '#1f262b' }]}>
-              <TrendingUp size={16} color={colors.primary} />
-            </View>
-            <View>
-              <Typography variant="captionSmall" color={colors.text}>Progress & Body Analytics</Typography>
-              <Typography style={{ fontSize: 10, color: colors.textMuted }}>Weight graph, volume & measurements</Typography>
-            </View>
-          </TouchableOpacity>
-
         </View>
       </TouchableOpacity>
     </Modal>
@@ -179,7 +155,7 @@ function MainTabs() {
         />
         <Tab.Screen 
           name="Me" 
-          component={ProfileScreen} 
+          component={MeStack} 
           options={{
             tabBarIcon: ({ color }) => <User size={20} color={color} />,
           }}
@@ -200,14 +176,14 @@ export default function RootNavigator() {
         {/* Full-screen / Modal flow screens */}
         <RootStack.Screen name="Nutrition" component={NutritionScreen} options={{ presentation: 'modal' }} />
         <RootStack.Screen name="Progress" component={ProgressAnalyticsScreen} options={{ presentation: 'modal' }} />
+        <RootStack.Screen name="Notifications" component={NotificationsModal} options={{ presentation: 'modal' }} />
+        <RootStack.Screen name="StrengthPR" component={StrengthPRScreen} options={{ presentation: 'modal' }} />
+        <RootStack.Screen name="UserProfile" component={UserProfileScreen} />
+        <RootStack.Screen name="WorkoutDetail" component={WorkoutDetailScreen} />
+
         
-        {/* Duo Workout Stack */}
+        {/* Duo Workout Stack — single entry point, internal screens navigate within */}
         <RootStack.Screen name="DuoStack" component={DuoStack} options={{ presentation: 'modal' }} />
-        {/* Direct entries for Duo flow since navigating to single screens in stack can be handy */}
-        <RootStack.Screen name="DuoLobby" component={DuoStack} />
-        <RootStack.Screen name="DuoInvite" component={DuoStack} />
-        <RootStack.Screen name="DuoWorkout" component={DuoStack} />
-        <RootStack.Screen name="DuoComplete" component={DuoStack} />
         
         {/* Group Workout Screens */}
         <RootStack.Screen name="GroupLobby" component={GroupWorkoutLobbyScreen} options={{ presentation: 'modal' }} />
@@ -279,12 +255,57 @@ const styles = StyleSheet.create({
     backgroundColor: '#121517',
     marginBottom: 8,
   },
+  fabPrimaryItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: radius.lg,
+    backgroundColor: colors.primary,
+    marginBottom: 12,
+  },
+  fabPrimaryLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  fabPrimaryTitle: {
+    color: colors.primaryDark,
+    fontSize: 16,
+    fontWeight: '900',
+  },
+  fabPrimarySubtitle: {
+    color: 'rgba(14, 16, 18, 0.7)',
+    fontSize: 10,
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  fabSecondaryItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceAlt,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  fabSecondaryTitle: {
+    color: colors.text,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  fabSecondarySubtitle: {
+    color: colors.textMuted,
+    fontSize: 10,
+    marginTop: 2,
+  },
   fabIconBox: {
-    width: 32,
-    height: 32,
+    width: 36,
+    height: 36,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
   }
 });
+

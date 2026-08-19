@@ -13,3 +13,5 @@ export * from './group';
 export * from './nutrition';
 export * from './community';
 export * from './session';
+export * from './measurement';
+export * from './notification';

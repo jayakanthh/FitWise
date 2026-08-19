@@ -48,6 +48,12 @@ service cloud.firestore {
       allow update, delete: if isSignedIn() && resource.data.createdBy == request.auth.uid;
     }
 
+    // ---- Public Food Database ----
+    match /foods/{foodId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
     // ---- Training plans: public plans are readable by all; private only by owner ----
     match /plans/{planId} {
       allow read: if isSignedIn()
@@ -105,6 +111,89 @@ service cloud.firestore {
       match /{sub}/{docId} {
         allow read, write: if isMember();
       }
+    }
+
+    // ---- Communities ----
+    match /communities/{communityId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.createdBy == request.auth.uid;
+      allow update: if isSignedIn() && (
+        request.auth.uid in resource.data.adminIds ||
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberCount', 'trainingNowCount'])
+      );
+      allow delete: if isSignedIn() && resource.data.createdBy == request.auth.uid;
+
+      match /members/{uid} {
+        allow read: if isSignedIn();
+        allow write: if isSignedIn() && (request.auth.uid == uid || request.auth.uid in get(/databases/$(database)/documents/communities/$(communityId)).data.adminIds);
+      }
+
+      match /requests/{uid} {
+        allow read, write: if isSignedIn() && (request.auth.uid == uid || request.auth.uid in get(/databases/$(database)/documents/communities/$(communityId)).data.adminIds);
+      }
+
+      match /challenges/{challengeId} {
+        allow read: if isSignedIn();
+        allow create, update, delete: if isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/communities/$(communityId)).data.adminIds;
+        allow update: if isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['participantIds']);
+
+        match /progress/{uid} {
+          allow read: if isSignedIn();
+          allow write: if isSignedIn() && request.auth.uid == uid;
+        }
+      }
+
+      match /posts/{postId} {
+        allow read: if isSignedIn();
+        allow create: if isSignedIn() && request.resource.data.authorId == request.auth.uid;
+        allow update: if isSignedIn() && (
+          resource.data.authorId == request.auth.uid ||
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'celebrateCount', 'commentCount'])
+        );
+        allow delete: if isSignedIn() && resource.data.authorId == request.auth.uid;
+      }
+
+      match /achievements/{achId} {
+        allow read: if isSignedIn();
+        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      }
+    }
+
+    // ---- Duo/Group Live Sessions ----
+    match /duoSessions/{sessionId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.creatorId == request.auth.uid;
+      allow update: if isSignedIn() && (
+        request.auth.uid == resource.data.creatorId ||
+        request.auth.uid in resource.data.participants.keys() ||
+        request.auth.uid in request.resource.data.participants.keys()
+      );
+      allow delete: if isSignedIn() && resource.data.creatorId == request.auth.uid;
+
+      match /participants/{uid} {
+        allow read: if isSignedIn();
+        allow write: if isSignedIn() && request.auth.uid == uid;
+
+        match /sets/{setId} {
+          allow read: if isSignedIn();
+          allow write: if isSignedIn() && request.auth.uid == uid;
+        }
+      }
+    }
+
+    // ---- Session Invites ----
+    match /sessionInvites/{inviteId} {
+      allow read, update, delete: if isSignedIn() && (
+        request.auth.uid == resource.data.fromUserId ||
+        request.auth.uid == resource.data.toUserId
+      );
+      allow create: if isSignedIn() && request.resource.data.fromUserId == request.auth.uid;
+    }
+
+    // ---- Notifications ----
+    match /notifications/{notifId} {
+      allow read, update, delete: if isSignedIn() && request.auth.uid == resource.data.userId;
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || request.resource.data.fromUserId == request.auth.uid);
     }
   }
 }

@@ -3,18 +3,21 @@
  * UI can do:  import { logWorkout, getStreakBoard } from '../services';
  * Owner: jaikanth (backend).
  */
-export * from './auth';
-export * from './users';
-export * from './profile';
-export * from './workouts';
-export * from './exercises';
-export * from './plans';
-export * from './groups';
-export * from './friends';
-export * from './nutrition';
-export * from './streaks';
-export * from './dates';
-export * from './community';
-export * from './follow';
-export * from './duoSession';
-export { auth, db } from './firebase';
+export * from './auth/auth';
+export * from './users/users';
+export * from './users/profile';
+export * from './workouts/workouts';
+export * from './exercises/exercises';
+export * from './workouts/plans';
+export * from './duo/groups';
+export * from './users/friends';
+export * from './nutrition/nutrition';
+export * from './workouts/streaks';
+export * from '../utils/formatting/dates';
+export * from './community/community';
+export * from './users/follow';
+export * from './duo/duoSession';
+export { auth, db } from '../config/firebase';
+export * from './measurements/measurements';
+export * from './measurements/energy';
+export * from './notifications/notification';

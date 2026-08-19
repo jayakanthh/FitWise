@@ -1,9 +1,9 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import CommunityScreen from '../screens/CommunityScreen';
-import CommunityDetailScreen from '../screens/CommunityDetailScreen';
-import CommunityDiscoverScreen from '../screens/CommunityDiscoverScreen';
-import CommunityCreateScreen from '../screens/CommunityCreateScreen';
+import CommunityScreen from '../screens/community/CommunityScreen';
+import CommunityDetailScreen from '../screens/community/CommunityDetailScreen';
+import CommunityDiscoverScreen from '../screens/community/CommunityDiscoverScreen';
+import CommunityCreateScreen from '../screens/community/CommunityCreateScreen';
 
 const Stack = createNativeStackNavigator();
 

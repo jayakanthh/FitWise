@@ -25,6 +25,12 @@ export interface User {
   groupIds: string[];
   communityIds?: string[]; // communities (gym, college, etc.) — distinct from crews
   savedPlanIds?: string[]; // public plans the user has bookmarked (Workouts > Saved tab)
+  
+  username?: string;
+  normalizedUsername?: string;
+  
+  // body progress & energy profile
+  activityLevel?: 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active';
 }
 
 /** A body measurement snapshot over time. */

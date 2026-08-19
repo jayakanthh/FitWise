@@ -10,7 +10,7 @@ export const initialUserProfile: UserProfile = {
   id: 'user-teja',
   name: 'Teja',
   avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-  email: 'teja@fitwise.app',
+  email: 'teja@ironsync.app',
   currentWeight: 103.4,
   targetWeight: 100.0,
   weightChangeThisWeek: -0.4,

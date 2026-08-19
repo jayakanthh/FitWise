@@ -32,6 +32,7 @@ export type CommunityRole = 'admin' | 'member';
 export type ChallengeMetric =
   | 'workout_count'
   | 'volume_kg'
+  | 'exercise_volume'
   | 'steps'
   | 'consistency_days'
   | 'pr_count';
@@ -60,7 +61,9 @@ export interface CommunityMember {
   role: CommunityRole;
   joinedAt: number;
   isTrainingNow?: boolean; // set to true when user starts a workout session
-  currentActivity?: string; // e.g. "Chest — Bench Press" (only when isTrainingNow)
+  currentActivity?: string; // e.g. "Chest - Bench Press" (only when isTrainingNow)
+  activeExerciseIds?: string[]; // IDs of exercises currently being performed
+  lastActive?: number; // epoch ms when they were last active/training
   workoutVisibility?: WorkoutVisibility; // their default workout visibility
 }
 
@@ -80,6 +83,7 @@ export interface CommunityChallenge {
   name: string;
   description?: string;
   metric: ChallengeMetric;
+  exerciseName?: string; // used when metric is exercise_volume
   target: number; // e.g. 20 workouts, 10000 steps, 50000 kg volume
   startDate: string; // YYYY-MM-DD
   endDate: string; // YYYY-MM-DD
@@ -87,6 +91,7 @@ export interface CommunityChallenge {
   createdBy: string;
   createdAt: number;
   isActive: boolean;
+  status?: 'active' | 'completed' | 'discarded' | 'expired';
 }
 
 /** One participant's progress on a challenge. */
@@ -120,6 +125,7 @@ export interface CommunityPost {
   celebrateCount: number;
   commentCount: number;
   createdAt: number;
+  notes?: string;
 }
 
 /** A comment on a community post — `communities/{id}/posts/{postId}/comments/{id}`. */
@@ -147,3 +153,4 @@ export interface CommunityAchievement {
   achievedOn: string; // YYYY-MM-DD
   createdAt: number;
 }
+
