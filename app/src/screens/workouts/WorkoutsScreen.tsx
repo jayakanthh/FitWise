@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View, ScrollView } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Play, Plus, Dumbbell } from 'lucide-react-native';
 import { colors, spacing, radius } from '../../theme/colors';
 import RoutineLibraryScreen from './RoutineLibraryScreen';
@@ -17,6 +18,7 @@ export default function WorkoutsScreen({
 }: {
   navigation: { navigate: (screen: string, params?: any) => void };
 }) {
+  const insets = useSafeAreaInsets();
   const { profile, refresh } = useCurrentUser();
   const [tab, setTab] = useState<SubTab>('routines');
   const [routines, setRoutines] = useState<Routine[]>([]);
@@ -74,7 +76,7 @@ export default function WorkoutsScreen({
   return (
     <View style={styles.screen}>
       {/* Exercise Hub Launch Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
         <Text style={styles.headerTitle}>Exercise Hub</Text>
         <Text style={styles.headerSubtitle}>Start training splits or log free workouts</Text>
       </View>
