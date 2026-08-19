@@ -1,9 +1,9 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import WorkoutsScreen from '../screens/WorkoutsScreen';
-import PlanBuilderScreen from '../screens/PlanBuilderScreen';
-import AdoptPlanScreen from '../screens/AdoptPlanScreen';
-import LogWorkoutScreen from '../screens/LogWorkoutScreen';
-import ProgressAnalyticsScreen from '../screens/ProgressAnalyticsScreen';
+import WorkoutsScreen from '../screens/workouts/WorkoutsScreen';
+import PlanBuilderScreen from '../screens/workouts/PlanBuilderScreen';
+import AdoptPlanScreen from '../screens/workouts/AdoptPlanScreen';
+import LogWorkoutScreen from '../screens/workouts/LogWorkoutScreen';
+import ProgressAnalyticsScreen from '../screens/measurements/ProgressAnalyticsScreen';
 
 const Stack = createNativeStackNavigator();
 

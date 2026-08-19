@@ -2,7 +2,7 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { colors } from './src/theme/colors';
 import { CurrentUserProvider } from './src/context/CurrentUser';
-import AuthGate from './src/components/AuthGate';
+import AuthGate from './src/components/common/AuthGate';
 import RootNavigator from './src/navigation/RootNavigator';
 
 /**

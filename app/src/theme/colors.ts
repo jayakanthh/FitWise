@@ -8,7 +8,7 @@ export const colors = {
   bg: '#0e1012', // Ultra-dark neutral background
   surface: '#171a1d', // Elevated surface container
   surfaceAlt: '#1c2226', // Lighter surface for inputs/cards
-  primary: '#48bb95', // Vibrant High-Contrast Emerald
+  primary: '#ff6b00', // Vibrant Iron Orange
   primaryDark: '#0e1012', // Text on primary
   text: '#FFFFFF', // Pure white text
   textMuted: '#9ca3af', // Neutral 400 (Tailwind)
