@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { X, Award, Flame, TrendingUp } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, spacing, radius } from '../../theme/colors';
 import { useCurrentUser } from '../../context/CurrentUser';
 import { getPersonalRecords } from '../../services/workouts/workouts';
@@ -17,6 +18,7 @@ import type { PersonalRecord, Exercise } from '../../models/index';
 
 export default function StrengthPRScreen() {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const { profile } = useCurrentUser();
   const [prs, setPrs] = useState<PersonalRecord[]>([]);
   const [exercisesMap, setExercisesMap] = useState<Record<string, Exercise>>({});
@@ -52,7 +54,7 @@ export default function StrengthPRScreen() {
 
   if (loading) {
     return (
-      <View style={styles.screen}>
+      <View style={[styles.screen, { paddingTop: insets.top }]}>
         <View style={styles.header}>
           <Text style={styles.title}>Strength PRs</Text>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeBtn}>
@@ -67,7 +69,7 @@ export default function StrengthPRScreen() {
   }
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Award size={22} color={colors.milestone} />

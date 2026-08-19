@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { X, Bell, Trash2, CheckCircle2, Dumbbell, UserPlus, Award } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, spacing, radius } from '../../theme/colors';
 import { useCurrentUser } from '../../context/CurrentUser';
 import {
@@ -22,6 +23,7 @@ import type { AppNotification } from '../../models/index';
 
 export default function NotificationsModal() {
   const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
   const { profile } = useCurrentUser();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [loading, setLoading] = useState(true);
@@ -103,7 +105,7 @@ export default function NotificationsModal() {
 
   if (loading) {
     return (
-      <View style={styles.screen}>
+      <View style={[styles.screen, { paddingTop: insets.top }]}>
         <View style={styles.header}>
           <Text style={styles.title}>Notifications</Text>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeBtn}>
@@ -118,7 +120,7 @@ export default function NotificationsModal() {
   }
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Bell size={20} color={colors.primary} />
