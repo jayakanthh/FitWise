@@ -1,26 +1,28 @@
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
+import { View } from 'react-native';
 import { colors } from './src/theme/colors';
 import { CurrentUserProvider } from './src/context/CurrentUser';
 import AuthGate from './src/components/common/AuthGate';
 import RootNavigator from './src/navigation/RootNavigator';
 
 /**
- * App entry point. One universal top safe-area wrap keeps every screen clear of
- * the notch/status bar (the bottom tab bar handles the bottom inset itself).
- * CurrentUserProvider tracks who's signed in; AuthGate shows login → onboarding
- * → the bottom-tab app.
+ * App entry point. SafeAreaProvider supplies insets; each SCREEN applies its own
+ * top inset (via its header / SafeAreaView / useSafeAreaInsets). We deliberately
+ * do NOT wrap here with SafeAreaView(top) — that double-applied the inset on top
+ * of every screen's own handling, leaving a big gap. Auth/onboarding screens
+ * handle their own inset too.
  */
 export default function App() {
   return (
     <SafeAreaProvider>
       <StatusBar style="light" />
       <CurrentUserProvider>
-        <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.bg }}>
+        <View style={{ flex: 1, backgroundColor: colors.bg }}>
           <AuthGate>
             <RootNavigator />
           </AuthGate>
-        </SafeAreaView>
+        </View>
       </CurrentUserProvider>
     </SafeAreaProvider>
   );

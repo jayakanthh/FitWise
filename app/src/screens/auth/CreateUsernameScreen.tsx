@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   ActivityIndicator,
   Alert,
@@ -18,6 +19,7 @@ import { Typography } from "../../components/ui/Typography";
 import { Button } from "../../components/ui/Button";
 
 export default function CreateUsernameScreen() {
+  const insets = useSafeAreaInsets();
   const { profile, refresh } = useCurrentUser();
   
   const [username, setUsername] = useState("");
@@ -70,7 +72,7 @@ export default function CreateUsernameScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.screen}
+      style={[styles.screen, { paddingTop: insets.top }]}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <View style={styles.content}>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   ActivityIndicator,
   ScrollView,
@@ -47,6 +48,7 @@ function withTimeout<T>(promise: Promise<T>, label: string, ms = 12000): Promise
  * training days drive the streak (see docs/DATA_MODEL.md).
  */
 export default function OnboardingScreen() {
+  const insets = useSafeAreaInsets();
   const { profile, refresh } = useCurrentUser();
   const [age, setAge] = useState('');
   const [height, setHeight] = useState('');
@@ -110,7 +112,7 @@ export default function OnboardingScreen() {
   };
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+    <ScrollView style={styles.screen} contentContainerStyle={[styles.content, { paddingTop: insets.top + 8 }]}>
       <Text style={styles.h1}>Welcome, {profile?.displayName} 💪</Text>
       <Text style={styles.sub}>A few quick things so we can tailor IronSync to you.</Text>
 
