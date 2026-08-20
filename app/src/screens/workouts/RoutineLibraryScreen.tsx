@@ -1,19 +1,23 @@
 import { useState } from 'react';
 import { Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { Search, Bookmark, Check, Plus, Play, X, Pencil } from 'lucide-react-native';
+import { Search, Bookmark, Star, Plus, Play, X, Pencil } from 'lucide-react-native';
 import { colors, spacing } from '../../theme/colors';
 import type { Routine } from '../../types/ironsync';
 
 interface RoutineLibraryScreenProps {
   routines: Routine[];
   onStartRoutine: (routine: Routine) => void;
-  onSaveRoutineToggle: (routineId: string) => void;
+  onSaveRoutineToggle: (routineId: string) => void; // "Save" a public plan → clones it into My Routines
   onCreateRoutineClick: () => void;
   onEditRoutine: (routine: Routine) => void;
+  onSetDefault: (routineId: string) => void; // set/unset the user's default plan (drives Home)
   currentUserName?: string; // whose routines count as "My Routines"
 }
 
-const TABS: ('My Routines' | 'Public Library' | 'Saved')[] = ['My Routines', 'Public Library', 'Saved'];
+// "My Routines" holds everything the user owns — created or saved-from-public
+// (saving clones it), so there's no separate "Saved" tab. "Public Library" is
+// for discovering other people's plans.
+const TABS: ('My Routines' | 'Public Library')[] = ['My Routines', 'Public Library'];
 const FILTER_CHIPS = ['All', 'Strength', 'Hypertrophy', 'Beginner', 'Advanced'];
 
 /** Ported from iron-sync web (RoutineLibraryScreen.tsx). */
@@ -23,19 +27,20 @@ export default function RoutineLibraryScreen({
   onSaveRoutineToggle,
   onCreateRoutineClick,
   onEditRoutine,
+  onSetDefault,
   currentUserName,
 }: RoutineLibraryScreenProps) {
   // A routine is editable only by its creator.
   const isMine = (r: Routine) => !!currentUserName && r.creator === currentUserName;
-  const [activeTab, setActiveTab] = useState<typeof TABS[number]>('Public Library');
+  const [activeTab, setActiveTab] = useState<typeof TABS[number]>('My Routines');
   const [selectedFilter, setSelectedFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [previewRoutine, setPreviewRoutine] = useState<Routine | null>(null);
 
   const filteredRoutines = routines.filter((r) => {
-    if (activeTab === 'My Routines' && r.creator !== (currentUserName ?? '___none___')) return false;
-    if (activeTab === 'Public Library' && !r.isPublic) return false;
-    if (activeTab === 'Saved' && !r.isSaved) return false;
+    if (activeTab === 'My Routines' && !isMine(r)) return false;
+    // Public Library = other people's public plans (yours already live in My Routines).
+    if (activeTab === 'Public Library' && (!r.isPublic || isMine(r))) return false;
     if (selectedFilter !== 'All' && r.category !== selectedFilter) return false;
     if (
       searchQuery &&
@@ -112,7 +117,15 @@ export default function RoutineLibraryScreen({
             >
               <View style={styles.cardTopRow}>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.cardTitle}>{routine.name}</Text>
+                  <View style={styles.titleRow}>
+                    <Text style={styles.cardTitle}>{routine.name}</Text>
+                    {routine.isActive && (
+                      <View style={styles.defaultBadge}>
+                        <Star size={9} color={colors.primaryDark} fill={colors.primaryDark} />
+                        <Text style={styles.defaultBadgeText}>DEFAULT</Text>
+                      </View>
+                    )}
+                  </View>
                   <Text style={styles.cardCreator}>By {routine.creator}</Text>
                 </View>
                 <Text style={styles.daysTag}>{routine.daysPerWeek} DAYS/WEEK</Text>
@@ -128,29 +141,26 @@ export default function RoutineLibraryScreen({
 
                 <View style={styles.cardActions}>
                   {isMine(routine) ? (
-                    <TouchableOpacity
-                      style={styles.editBtn}
-                      onPress={() => onEditRoutine(routine)}
-                    >
-                      <Pencil size={13} color={colors.primary} strokeWidth={2.5} />
-                      <Text style={styles.editBtnText}>Edit</Text>
-                    </TouchableOpacity>
+                    <>
+                      <TouchableOpacity
+                        style={[styles.starBtn, routine.isActive && styles.starBtnActive]}
+                        onPress={() => onSetDefault(routine.id)}
+                      >
+                        <Star
+                          size={15}
+                          color={routine.isActive ? colors.primary : colors.textMuted}
+                          fill={routine.isActive ? colors.primary : 'transparent'}
+                        />
+                      </TouchableOpacity>
+                      <TouchableOpacity style={styles.editBtn} onPress={() => onEditRoutine(routine)}>
+                        <Pencil size={13} color={colors.primary} strokeWidth={2.5} />
+                        <Text style={styles.editBtnText}>Edit</Text>
+                      </TouchableOpacity>
+                    </>
                   ) : (
-                    <TouchableOpacity
-                      style={[styles.saveBtn, routine.isSaved && styles.saveBtnSaved]}
-                      onPress={() => onSaveRoutineToggle(routine.id)}
-                    >
-                      {routine.isSaved ? (
-                        <>
-                          <Check size={13} color={colors.primary} strokeWidth={3} />
-                          <Text style={styles.saveBtnTextSaved}>Saved</Text>
-                        </>
-                      ) : (
-                        <>
-                          <Plus size={13} color={colors.primaryDark} strokeWidth={3} />
-                          <Text style={styles.saveBtnText}>Save</Text>
-                        </>
-                      )}
+                    <TouchableOpacity style={styles.saveBtn} onPress={() => onSaveRoutineToggle(routine.id)}>
+                      <Plus size={13} color={colors.primaryDark} strokeWidth={3} />
+                      <Text style={styles.saveBtnText}>Save</Text>
                     </TouchableOpacity>
                   )}
 
@@ -203,6 +213,22 @@ export default function RoutineLibraryScreen({
                 ))}
               </ScrollView>
 
+              {isMine(previewRoutine) && (
+                <TouchableOpacity
+                  style={[styles.modalDefaultBtn, previewRoutine.isActive && styles.modalDefaultBtnActive]}
+                  onPress={() => onSetDefault(previewRoutine.id)}
+                >
+                  <Star
+                    size={14}
+                    color={colors.primary}
+                    fill={previewRoutine.isActive ? colors.primary : 'transparent'}
+                  />
+                  <Text style={styles.modalDefaultText}>
+                    {previewRoutine.isActive ? 'Default plan ✓ — tap to unset' : 'Set as default plan'}
+                  </Text>
+                </TouchableOpacity>
+              )}
+
               <View style={styles.modalActions}>
                 {isMine(previewRoutine) ? (
                   <TouchableOpacity
@@ -217,8 +243,16 @@ export default function RoutineLibraryScreen({
                     <Text style={styles.modalEditText}>Edit</Text>
                   </TouchableOpacity>
                 ) : (
-                  <TouchableOpacity style={styles.modalCloseBtn} onPress={() => setPreviewRoutine(null)}>
-                    <Text style={styles.modalCloseText}>Close</Text>
+                  <TouchableOpacity
+                    style={styles.modalEditBtn}
+                    onPress={() => {
+                      const r = previewRoutine;
+                      setPreviewRoutine(null);
+                      onSaveRoutineToggle(r.id);
+                    }}
+                  >
+                    <Plus size={14} color={colors.primary} strokeWidth={2.5} />
+                    <Text style={styles.modalEditText}>Save</Text>
                   </TouchableOpacity>
                 )}
                 <TouchableOpacity
@@ -302,7 +336,18 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   cardTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
   cardTitle: { color: colors.text, fontSize: 15, fontWeight: '700' },
+  defaultBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: colors.primary,
+    borderRadius: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  defaultBadgeText: { color: colors.primaryDark, fontSize: 9, fontWeight: '800', letterSpacing: 0.5 },
   cardCreator: { color: colors.textMuted, fontSize: 11, marginTop: 2 },
   daysTag: {
     fontSize: 10,
@@ -351,6 +396,17 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
   },
   editBtnText: { color: colors.primary, fontSize: 11, fontWeight: '700' },
+  starBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surfaceAlt,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  starBtnActive: { borderColor: colors.primary, backgroundColor: '#1b2b24' },
   playBtn: {
     width: 32,
     height: 32,
@@ -421,6 +477,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   modalEditText: { color: colors.primary, fontSize: 12, fontWeight: '700' },
+  modalDefaultBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 11,
+    borderRadius: 12,
+    backgroundColor: colors.surfaceAlt,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  modalDefaultBtnActive: { borderColor: colors.primary, backgroundColor: '#1b2b24' },
+  modalDefaultText: { color: colors.primary, fontSize: 12, fontWeight: '700' },
   modalStartBtn: {
     flex: 1,
     flexDirection: 'row',

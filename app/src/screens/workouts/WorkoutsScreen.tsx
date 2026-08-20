@@ -2,11 +2,12 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View, ScrollView } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Alert } from 'react-native';
 import { Play, Plus, Dumbbell } from 'lucide-react-native';
 import { colors, spacing, radius } from '../../theme/colors';
 import RoutineLibraryScreen from './RoutineLibraryScreen';
 import ExerciseLibraryScreen from './ExerciseLibraryScreen';
-import { adjustPlanSavedCount, getExercises, searchExercises, getMyPlans, getPublicPlans, toggleSavedPlan } from '../../services/index';
+import { getExercises, searchExercises, getMyPlans, getPublicPlans, getPlan, clonePlan, setActivePlan } from '../../services/index';
 import { exerciseToView, planToRoutine } from '../../adapters/adapters';
 import { useCurrentUser } from '../../context/CurrentUser';
 import type { Routine, Exercise } from '../../types/ironsync';
@@ -29,15 +30,16 @@ export default function WorkoutsScreen({
     getExercises(100).then((res) => setExercises(res.data.map(exerciseToView)));
   }, []);
 
-  // Real plans: mine (public + private) + everyone's public, de-duped
+  // Real plans: mine (public + private) + everyone's public, de-duped.
+  // The active plan (profile.activePlanId) is flagged so it shows a "Default" badge.
   const loadPlans = useCallback(async () => {
     const uid = profile?.id;
     const [mine, pub] = await Promise.all([uid ? getMyPlans(uid) : [], getPublicPlans()]);
     const byId = new Map(pub.map((p) => [p.id, p]));
     mine.forEach((p) => byId.set(p.id, p));
-    const savedIds = new Set(profile?.savedPlanIds ?? []);
-    setRoutines([...byId.values()].map((p) => planToRoutine(p, savedIds.has(p.id))));
-  }, [profile?.id, profile?.savedPlanIds]);
+    const activeId = profile?.activePlanId;
+    setRoutines([...byId.values()].map((p) => planToRoutine(p, false, p.id === activeId)));
+  }, [profile?.id, profile?.activePlanId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -45,31 +47,33 @@ export default function WorkoutsScreen({
     }, [loadPlans]),
   );
 
-  const handleSaveToggle = async (routineId: string) => {
+  // "Save" from Public Library → clone the plan into the user's own routines
+  // so it lives under "My Routines" and is fully editable (they own the copy).
+  const handleAdopt = async (routineId: string) => {
     if (!profile) return;
-    const target = routines.find((r) => r.id === routineId);
-    if (!target) return;
-    const nextSaved = !target.isSaved;
-
-    // Optimistic UI update
-    setRoutines((prev) =>
-      prev.map((r) =>
-        r.id === routineId ? { ...r, isSaved: nextSaved, saves: r.saves + (nextSaved ? 1 : -1) } : r,
-      ),
-    );
     try {
-      await Promise.all([
-        toggleSavedPlan(profile.id, routineId, nextSaved),
-        adjustPlanSavedCount(routineId, nextSaved ? 1 : -1),
-      ]);
+      const plan = await getPlan(routineId);
+      if (!plan) return;
+      await clonePlan(profile.id, plan, profile.displayName);
+      await refresh();
+      await loadPlans();
+      Alert.alert('Saved', `"${plan.name}" was added to your routines. Find it under My Routines.`);
+    } catch {
+      Alert.alert('Error', 'Could not save this routine. Please try again.');
+    }
+  };
+
+  // Set (or unset) the user's default plan — Home's "Today's Plan" follows it.
+  const handleSetDefault = async (routineId: string) => {
+    if (!profile) return;
+    const makeDefault = profile.activePlanId !== routineId;
+    // Optimistic: only one plan is the default at a time.
+    setRoutines((prev) => prev.map((r) => ({ ...r, isActive: makeDefault && r.id === routineId })));
+    try {
+      await setActivePlan(profile.id, makeDefault ? routineId : null);
       await refresh();
     } catch {
-      // Revert on failure
-      setRoutines((prev) =>
-        prev.map((r) =>
-          r.id === routineId ? { ...r, isSaved: !nextSaved, saves: r.saves + (nextSaved ? -1 : 1) } : r,
-        ),
-      );
+      await loadPlans(); // revert to server truth
     }
   };
 
@@ -138,7 +142,8 @@ export default function WorkoutsScreen({
                 navigation.navigate('AdoptPlan', { planId: r.id });
               }
             }}
-            onSaveRoutineToggle={handleSaveToggle}
+            onSaveRoutineToggle={handleAdopt}
+            onSetDefault={handleSetDefault}
             onCreateRoutineClick={() => navigation.navigate('PlanBuilder')}
             onEditRoutine={(r: Routine) => navigation.navigate('PlanBuilder', { planId: r.id })}
           />

@@ -131,6 +131,7 @@ export interface Routine {
   daysPerWeek: number;
   saves: number;
   isSaved?: boolean;
+  isActive?: boolean; // this is the user's current default plan (drives Home's "Today's Plan")
   isPublic: boolean;
   category: 'Strength' | 'Hypertrophy' | 'Beginner' | 'Advanced' | 'Home';
   description?: string;
