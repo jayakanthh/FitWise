@@ -12,6 +12,13 @@ import { ChevronRight, Activity, Target, Zap } from 'lucide-react-native';
 import { colors, spacing, radius } from '../../theme/colors';
 import { useCurrentUser } from '../../context/CurrentUser';
 import { getMeasurementHistory, getActiveGoal } from '../../services/measurements/measurements';
+import {
+  getUnitSystem,
+  convertWeightToDisplay,
+  getWeightUnit,
+  convertCmToDisplay,
+  getMeasurementUnit,
+} from '../../utils/formatting/units';
 import { calculateBMR, calculateTDEE } from '../../services/measurements/energy';
 import { analyzeProgress } from '../../services/measurements/trend';
 import type { MeasurementEntry, MeasurementGoal, MeasurementType } from '../../models/measurement';
@@ -42,6 +49,7 @@ export default function MeasurementsScreen() {
   const [latestByType, setLatestByType] = useState<Record<string, MeasurementEntry | null>>({});
   const [activeGoal, setActiveGoal] = useState<MeasurementGoal | null>(null);
   const [weightHistory, setWeightHistory] = useState<MeasurementEntry[]>([]);
+  const [goalHistory, setGoalHistory] = useState<MeasurementEntry[]>([]);
 
   const load = useCallback(async () => {
     if (!profile) return;
@@ -59,8 +67,21 @@ export default function MeasurementsScreen() {
       byType[t.type] = data.length > 0 ? data[data.length - 1] : null;
     });
 
+    let goalHistoryData: MeasurementEntry[] = [];
+    if (goal) {
+      if (goal.measurementType === 'weight') {
+        goalHistoryData = weightData;
+      } else {
+        const otherIdx = MEASUREMENT_TILES.slice(1).findIndex(t => t.type === goal.measurementType);
+        if (otherIdx !== -1) {
+          goalHistoryData = otherData[otherIdx];
+        }
+      }
+    }
+
     setActiveGoal(goal);
     setWeightHistory(weightData);
+    setGoalHistory(goalHistoryData);
     setLatestByType(byType);
     setLoading(false);
   }, [profile]);
@@ -95,10 +116,40 @@ export default function MeasurementsScreen() {
     tdee = calculateTDEE(bmr, profile.activityLevel!);
   }
 
+  const system = getUnitSystem(profile);
+
+  const formatGoalValue = (val: number, goalUnit: string, measurementType: string) => {
+    if (goalUnit === 'kg' || measurementType === 'weight') {
+      return convertWeightToDisplay(val, system);
+    } else if (goalUnit === 'cm') {
+      return convertCmToDisplay(val, system);
+    }
+    return val;
+  };
+
+  const getGoalUnitLabel = (goalUnit: string, measurementType: string) => {
+    if (goalUnit === 'kg' || measurementType === 'weight') {
+      return getWeightUnit(system);
+    } else if (goalUnit === 'cm') {
+      return getMeasurementUnit(system);
+    }
+    return goalUnit;
+  };
+
+  const formatGoalValueStr = (val: number, goalUnit: string, measurementType: string) => {
+    const converted = formatGoalValue(val, goalUnit, measurementType);
+    if (goalUnit === 'kg' || measurementType === 'weight') {
+      return converted.toFixed(1);
+    } else if (goalUnit === 'cm') {
+      return converted.toFixed(2);
+    }
+    return converted.toString();
+  };
+
   // ── Goal progress ──────────────────────────────────────────────────────────
   let trendResult = activeGoal
     ? analyzeProgress(
-        weightHistory,
+        goalHistory,
         activeGoal.startValue,
         activeGoal.targetValue,
         activeGoal.startDate,
@@ -106,7 +157,7 @@ export default function MeasurementsScreen() {
       )
     : null;
 
-  const latestWeight = latestByType['weight'];
+  const goalLatestEntry = activeGoal ? latestByType[activeGoal.measurementType] : null;
 
   return (
     <ScrollView
@@ -134,6 +185,16 @@ export default function MeasurementsScreen() {
       <View style={styles.tilesGrid}>
         {MEASUREMENT_TILES.map((t) => {
           const entry = latestByType[t.type];
+          const displayUnit = t.type === 'weight'
+            ? getWeightUnit(system)
+            : (t.type === 'body_fat' ? '%' : getMeasurementUnit(system));
+
+          const displayVal = entry
+            ? (t.type === 'weight'
+                ? convertWeightToDisplay(entry.value, system)
+                : (t.type === 'body_fat' ? entry.value : convertCmToDisplay(entry.value, system)))
+            : null;
+
           return (
             <TouchableOpacity
               key={t.type}
@@ -141,12 +202,12 @@ export default function MeasurementsScreen() {
               onPress={() =>
                 navigation.navigate('MeasurementHistory', {
                   type: t.type,
-                  unit: t.unit,
+                  unit: displayUnit,
                 })
               }
             >
-              <Text style={styles.tileValue}>
-                {entry ? `${entry.value} ${t.unit}` : '—'}
+              <Text style={entry ? styles.tileValue : styles.tileNoLogs}>
+                {entry ? `${displayVal} ${displayUnit}` : 'No logs'}
               </Text>
               <Text style={styles.tileLabel}>{t.label}</Text>
               <ChevronRight
@@ -175,7 +236,7 @@ export default function MeasurementsScreen() {
                 {activeGoal.type.replace(/_/g, ' ').toUpperCase()}
               </Text>
               <Text style={styles.goalCardValues}>
-                {activeGoal.startValue} → {activeGoal.targetValue} {activeGoal.unit}
+                {`${formatGoalValueStr(activeGoal.startValue, activeGoal.unit, activeGoal.measurementType)} → ${formatGoalValueStr(activeGoal.targetValue, activeGoal.unit, activeGoal.measurementType)} ${getGoalUnitLabel(activeGoal.unit, activeGoal.measurementType)}`}
               </Text>
             </View>
             {trendResult && (
@@ -190,7 +251,7 @@ export default function MeasurementsScreen() {
           {/* Mini progress bar */}
           {activeGoal && (() => {
             const total = Math.abs(activeGoal.startValue - activeGoal.targetValue);
-            const current = latestWeight?.value ?? activeGoal.startValue;
+            const current = goalLatestEntry?.value ?? activeGoal.startValue;
             const done = Math.abs(activeGoal.startValue - current);
             const pct = total === 0 ? 100 : Math.min(100, (done / total) * 100);
             return (
@@ -307,6 +368,7 @@ const styles = StyleSheet.create({
     padding: spacing.md,
   },
   tileValue: { color: colors.text, fontSize: 20, fontWeight: '800' },
+  tileNoLogs: { color: colors.textMuted, fontSize: 16, fontWeight: '600', marginTop: 2 },
   tileLabel: { color: colors.textMuted, fontSize: 12, marginTop: 2 },
 
   goalCard: {

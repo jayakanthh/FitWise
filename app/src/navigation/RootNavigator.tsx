@@ -20,6 +20,7 @@ import NotificationsModal from '../screens/settings/NotificationsModal';
 import StrengthPRScreen from '../screens/measurements/StrengthPRScreen';
 import UserProfileScreen from '../screens/community/UserProfileScreen';
 import WorkoutDetailScreen from '../screens/workouts/WorkoutDetailScreen';
+import ExerciseDetailScreen from '../screens/workouts/ExerciseDetailScreen';
 
 export const navigationRef = createNavigationContainerRef<any>();
 
@@ -180,6 +181,7 @@ export default function RootNavigator() {
         <RootStack.Screen name="StrengthPR" component={StrengthPRScreen} options={{ presentation: 'modal' }} />
         <RootStack.Screen name="UserProfile" component={UserProfileScreen} />
         <RootStack.Screen name="WorkoutDetail" component={WorkoutDetailScreen} />
+        <RootStack.Screen name="ExerciseDetail" component={ExerciseDetailScreen} />
 
         
         {/* Duo Workout Stack — single entry point, internal screens navigate within */}

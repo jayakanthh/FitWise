@@ -14,6 +14,15 @@ import {
   getExercisesByIds, getWorkoutHistory, searchExercises, getPersonalRecords, getFoodLog
 } from '../../services/index';
 import { getAvatarBg } from '../../utils/formatting/avatarColors';
+import {
+  getUnitSystem,
+  convertWeightToDisplay,
+  getWeightUnit,
+  convertCmToDisplay,
+  getMeasurementUnit,
+  convertWeightToCanonical,
+  convertCmToCanonical
+} from '../../utils/formatting/units';
 import { logMeasurement } from '../../services/measurements/measurements';
 import { todayISO } from '../../utils/formatting/dates';
 import type { MeasurementEntry, MeasurementGoal, MeasurementType, Workout, Exercise, PersonalRecord } from '../../models/index';
@@ -78,6 +87,7 @@ export default function ProfileScreen() {
   const { profile } = useCurrentUser();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
+  const system = getUnitSystem(profile);
   const [activeTab, setActiveTab] = useState<MeTab>('overview');
 
   // Overview states
@@ -85,12 +95,14 @@ export default function ProfileScreen() {
   const [musclePrimary, setMusclePrimary] = useState<Set<string>>(new Set());
   const [muscleSecondary, setMuscleSecondary] = useState<Set<string>>(new Set());
   const [loadingOverview, setLoadingOverview] = useState(false);
+  const [errorOverview, setErrorOverview] = useState(false);
 
   // Measures states
   const [latestByType, setLatestByType] = useState<Record<string, MeasurementEntry | null>>({});
   const [historyByType, setHistoryByType] = useState<Record<string, MeasurementEntry[]>>({});
   const [activeGoal, setActiveGoal] = useState<MeasurementGoal | null>(null);
   const [loadingMeasures, setLoadingMeasures] = useState(false);
+  const [errorMeasures, setErrorMeasures] = useState(false);
   const [showLogModal, setShowLogModal] = useState(false);
   const [logValues, setLogValues] = useState<Record<string, string>>({});
   const [logSaving, setLogSaving] = useState(false);
@@ -101,6 +113,7 @@ export default function ProfileScreen() {
   const [exerciseResults, setExerciseResults] = useState<Exercise[]>([]);
   const [loadingEx, setLoadingEx] = useState(false);
   const [prs, setPrs] = useState<Record<string, PersonalRecord>>({});
+  const [prExercises, setPrExercises] = useState<Record<string, Exercise>>({});
 
   // Responsive dimension variables
   const windowWidth = Dimensions.get('window').width;
@@ -110,6 +123,7 @@ export default function ProfileScreen() {
     const uid = currentUserId();
     if (!uid) return;
     setLoadingOverview(true);
+    setErrorOverview(false);
     try {
       const wkts = await getWorkoutHistory(uid, 20);
       setWorkouts(wkts);
@@ -127,7 +141,10 @@ export default function ProfileScreen() {
         setMusclePrimary(new Set());
         setMuscleSecondary(new Set());
       }
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error(e);
+      setErrorOverview(true);
+    }
     finally { setLoadingOverview(false); }
   }, []);
 
@@ -135,6 +152,7 @@ export default function ProfileScreen() {
     const uid = currentUserId();
     if (!uid) return;
     setLoadingMeasures(true);
+    setErrorMeasures(false);
     try {
       const [goal, ...allData] = await Promise.all([
         getActiveGoal(uid),
@@ -158,7 +176,10 @@ export default function ProfileScreen() {
       } else {
         setTodayCalories(0);
       }
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error(e);
+      setErrorMeasures(true);
+    }
     finally { setLoadingMeasures(false); }
   }, []);
 
@@ -172,6 +193,14 @@ export default function ProfileScreen() {
         dict[p.exerciseId] = p;
       });
       setPrs(dict);
+
+      const exIds = prList.map(p => p.exerciseId);
+      if (exIds.length > 0) {
+        const exercises = await getExercisesByIds(exIds);
+        const exDict: Record<string, Exercise> = {};
+        exercises.forEach(e => { exDict[e.id] = e; });
+        setPrExercises(exDict);
+      }
     } catch (e) { console.error(e); }
   }, []);
 
@@ -233,7 +262,10 @@ export default function ProfileScreen() {
 
   const latestWeight = latestByType['weight'];
   const weightChange = (() => {
-    return latestWeight ? latestWeight.value.toFixed(1) + ' kg' : null;
+    if (!latestWeight) return null;
+    const val = convertWeightToDisplay(latestWeight.value, system);
+    const unit = getWeightUnit(system);
+    return `${val.toFixed(1)} ${unit}`;
   })();
 
   const totalVolumeThisWeek = useMemo(() => {
@@ -252,7 +284,16 @@ export default function ProfileScreen() {
 
   const renderOverview = () => (
     <ScrollView contentContainerStyle={[styles.tabContent, { paddingBottom: insets.bottom + 80 }]} showsVerticalScrollIndicator={false}>
-      {/* Training Summary Cards */}
+      {errorOverview ? (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Failed to load training overview.</Text>
+          <TouchableOpacity style={styles.retryBtn} onPress={loadOverviewData}>
+            <Text style={styles.retryBtnText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <>
+          {/* Training Summary Cards */}
       <View style={styles.statsRow}>
         <View style={styles.statCard}>
           <Text style={styles.statNum}>{sessionsThisWeek}</Text>
@@ -348,6 +389,8 @@ export default function ProfileScreen() {
           <Text style={styles.emptyText}>No workout logs found. Start logging to build your profile history!</Text>
         </View>
       )}
+      </>
+      )}
     </ScrollView>
   );
 
@@ -372,26 +415,30 @@ export default function ProfileScreen() {
       ) : exerciseResults.length > 0 ? (
         exerciseResults.map((ex) => {
           const pr = prs[ex.id];
+          const isCardio = ex.category?.toLowerCase() === 'cardio' || ex.trackingType === 'duration' || ex.trackingType === 'reps_only';
           return (
-            <View key={ex.id} style={styles.exercisePremiumCard}>
+            <TouchableOpacity key={ex.id} activeOpacity={0.8} onPress={() => navigation.navigate('ExerciseDetail', { exerciseId: ex.id })}>
+            <View style={styles.exercisePremiumCard}>
               <View style={styles.exCardTop}>
                 <View style={styles.exThumbnail}>
                   <Text style={styles.exThumbText}>{(ex.muscleGroup || '?').slice(0, 2).toUpperCase()}</Text>
                 </View>
                 <View style={styles.exDetails}>
                   <Text style={styles.exTitle} numberOfLines={1}>{ex.name}</Text>
-                  <Text style={styles.exSubtitle}>{ex.muscleGroup} • {ex.equipment || 'No equipment'}</Text>
+                  <Text style={styles.exSubtitle}>{ex.muscleGroup || 'Other'} • {ex.equipment || 'No equipment'}</Text>
                 </View>
               </View>
-              {pr ? (
+              {pr && (!isCardio || pr.bestWeightKg > 0) ? (
                 <View style={styles.exPrRow}>
-                  <View style={styles.prBox}>
-                    <Text style={styles.prLabel}>EST. 1RM</Text>
-                    <Text style={styles.prValue}>{pr.estimated1RM.toFixed(1)} kg</Text>
-                  </View>
+                  {!isCardio && (
+                    <View style={styles.prBox}>
+                      <Text style={styles.prLabel}>EST. 1RM</Text>
+                      <Text style={styles.prValue}>{convertWeightToDisplay(pr.estimated1RM, system).toFixed(1)} {getWeightUnit(system)}</Text>
+                    </View>
+                  )}
                   <View style={styles.prBox}>
                     <Text style={styles.prLabel}>BEST LIFT</Text>
-                    <Text style={styles.prValue}>{pr.bestWeightKg} kg × {pr.bestReps}</Text>
+                    <Text style={styles.prValue}>{convertWeightToDisplay(pr.bestWeightKg, system).toFixed(1)} {getWeightUnit(system)} × {pr.bestReps}</Text>
                   </View>
                   <View style={styles.prTrendBadge}>
                     <TrendingUp size={12} color={colors.primary} />
@@ -404,6 +451,7 @@ export default function ProfileScreen() {
                 </View>
               )}
             </View>
+            </TouchableOpacity>
           );
         })
       ) : exerciseSearch.trim() ? (
@@ -414,26 +462,33 @@ export default function ProfileScreen() {
         // Renders exercises that have PRs as their recently performed list
         Object.keys(prs).length > 0 ? (
           Object.values(prs).slice(0, 8).map((pr) => {
-            // Placeholder exercise metadata resolution
+            const ex = prExercises[pr.exerciseId];
+            const exName = ex?.name || pr.exerciseId.replace(/_/g, ' ');
+            const exMuscle = ex?.muscleGroup || 'Other';
+            const isCardio = ex?.category?.toLowerCase() === 'cardio' || ex?.trackingType === 'duration' || ex?.trackingType === 'reps_only';
+            
             return (
-              <View key={pr.exerciseId} style={styles.exercisePremiumCard}>
+              <TouchableOpacity key={pr.exerciseId} activeOpacity={0.8} onPress={() => navigation.navigate('ExerciseDetail', { exerciseId: pr.exerciseId })}>
+              <View style={styles.exercisePremiumCard}>
                 <View style={styles.exCardTop}>
                   <View style={[styles.exThumbnail, { backgroundColor: 'rgba(6,182,212,0.15)' }]}>
-                    <Award size={16} color="#06b6d4" />
+                    <Text style={[styles.exThumbText, { color: '#06b6d4' }]}>{exMuscle.slice(0, 2).toUpperCase()}</Text>
                   </View>
                   <View style={styles.exDetails}>
-                    <Text style={styles.exTitle}>Exercise ID: {pr.exerciseId.slice(0, 16)}...</Text>
+                    <Text style={styles.exTitle} numberOfLines={1}>{exName}</Text>
                     <Text style={styles.exSubtitle}>Personal Record achieved on {pr.achievedOn}</Text>
                   </View>
                 </View>
                 <View style={styles.exPrRow}>
-                  <View style={styles.prBox}>
-                    <Text style={styles.prLabel}>EST. 1RM</Text>
-                    <Text style={styles.prValue}>{pr.estimated1RM.toFixed(1)} kg</Text>
-                  </View>
+                  {!isCardio && (
+                    <View style={styles.prBox}>
+                      <Text style={styles.prLabel}>EST. 1RM</Text>
+                      <Text style={styles.prValue}>{convertWeightToDisplay(pr.estimated1RM, system).toFixed(1)} {getWeightUnit(system)}</Text>
+                    </View>
+                  )}
                   <View style={styles.prBox}>
                     <Text style={styles.prLabel}>BEST LIFT</Text>
-                    <Text style={styles.prValue}>{pr.bestWeightKg} kg × {pr.bestReps}</Text>
+                    <Text style={styles.prValue}>{convertWeightToDisplay(pr.bestWeightKg, system).toFixed(1)} {getWeightUnit(system)} × {pr.bestReps}</Text>
                   </View>
                   <View style={styles.prTrendBadge}>
                     <TrendingUp size={12} color={colors.primary} />
@@ -441,6 +496,7 @@ export default function ProfileScreen() {
                   </View>
                 </View>
               </View>
+              </TouchableOpacity>
             );
           })
         ) : (
@@ -454,14 +510,64 @@ export default function ProfileScreen() {
   );
 
   const renderMeasures = () => {
+    const goalLatestEntry = activeGoal ? latestByType[activeGoal.measurementType] : null;
+
+    const formatGoalValue = (val: number, goalUnit: string, measurementType: string) => {
+      if (goalUnit === 'kg' || measurementType === 'weight') {
+        return convertWeightToDisplay(val, system);
+      } else if (goalUnit === 'cm') {
+        return convertCmToDisplay(val, system);
+      }
+      return val;
+    };
+
+    const getGoalUnitLabel = (goalUnit: string, measurementType: string) => {
+      if (goalUnit === 'kg' || measurementType === 'weight') {
+        return getWeightUnit(system);
+      } else if (goalUnit === 'cm') {
+        return getMeasurementUnit(system);
+      }
+      return goalUnit;
+    };
+
+    const formatGoalValueStr = (val: number, goalUnit: string, measurementType: string) => {
+      const converted = formatGoalValue(val, goalUnit, measurementType);
+      if (goalUnit === 'kg' || measurementType === 'weight') {
+        return converted.toFixed(1);
+      } else if (goalUnit === 'cm') {
+        return converted.toFixed(2);
+      }
+      return converted.toString();
+    };
+
+    const goalLatestValStr = (activeGoal && goalLatestEntry)
+      ? formatGoalValueStr(goalLatestEntry.value, activeGoal.unit, activeGoal.measurementType)
+      : null;
+
+    const progressPct = activeGoal ? (() => {
+      const currentVal = goalLatestEntry?.value ?? activeGoal.startValue;
+      const totalDiff = Math.abs(activeGoal.startValue - activeGoal.targetValue);
+      const doneDiff = Math.abs(activeGoal.startValue - currentVal);
+      return totalDiff === 0 ? 100 : Math.min(100, Math.round((doneDiff / totalDiff) * 100));
+    })() : 0;
+
     return (
       <ScrollView contentContainerStyle={[styles.tabContent, { paddingBottom: insets.bottom + 80 }]} showsVerticalScrollIndicator={false}>
-        <View style={styles.measuresActionRow}>
-          <TouchableOpacity style={styles.logCTA} onPress={() => setShowLogModal(true)}>
-            <Scale size={16} color={colors.primaryDark} style={{ marginRight: 6 }} />
-            <Text style={styles.logCTAText}>+ Log Measurements</Text>
-          </TouchableOpacity>
-        </View>
+        {errorMeasures ? (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>Failed to load measurements.</Text>
+            <TouchableOpacity style={styles.retryBtn} onPress={loadMeasuresData}>
+              <Text style={styles.retryBtnText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <>
+            <View style={styles.measuresActionRow}>
+              <TouchableOpacity style={styles.logCTA} onPress={() => setShowLogModal(true)}>
+                <Scale size={16} color={colors.primaryDark} style={{ marginRight: 6 }} />
+                <Text style={styles.logCTAText}>+ Log Measurements</Text>
+              </TouchableOpacity>
+            </View>
 
         {/* Active Weight Goal Card */}
         {activeGoal ? (
@@ -474,13 +580,15 @@ export default function ProfileScreen() {
               <Target size={20} color={colors.primary} />
             </View>
             <View style={styles.goalBodyRow}>
-              <Text style={styles.goalDetailVal}>{activeGoal.startValue} → {activeGoal.targetValue} {activeGoal.unit}</Text>
-              {latestWeight && (
-                <Text style={styles.goalCurrentVal}>Current: {latestWeight.value} {activeGoal.unit}</Text>
+              <Text style={styles.goalDetailVal}>
+                {`${formatGoalValueStr(activeGoal.startValue, activeGoal.unit, activeGoal.measurementType)} → ${formatGoalValueStr(activeGoal.targetValue, activeGoal.unit, activeGoal.measurementType)} ${getGoalUnitLabel(activeGoal.unit, activeGoal.measurementType)}`}
+              </Text>
+              {goalLatestValStr !== null && (
+                <Text style={styles.goalCurrentVal}>Current: {goalLatestValStr} {getGoalUnitLabel(activeGoal.unit, activeGoal.measurementType)}</Text>
               )}
             </View>
             <View style={styles.goalProgressBg}>
-              <View style={[styles.goalProgressFill, { width: `${Math.min(100, Math.round(Math.abs((latestWeight?.value ?? activeGoal.startValue) - activeGoal.startValue) / Math.max(1, Math.abs(activeGoal.startValue - activeGoal.targetValue)) * 100))}%` as any }]} />
+              <View style={[styles.goalProgressFill, { width: `${progressPct}%` as any }]} />
             </View>
           </View>
         ) : (
@@ -516,12 +624,30 @@ export default function ProfileScreen() {
             {MEASUREMENT_TILES.map(t => {
               const entry = latestByType[t.type];
               const history = historyByType[t.type] || [];
+              const displayUnit = t.type === 'weight'
+                ? getWeightUnit(system)
+                : (t.type === 'body_fat' ? '%' : getMeasurementUnit(system));
+
+              const displayVal = entry
+                ? (t.type === 'weight'
+                    ? convertWeightToDisplay(entry.value, system)
+                    : (t.type === 'body_fat' ? entry.value : convertCmToDisplay(entry.value, system)))
+                : null;
+
+              // Convert history values for trend chart
+              const convertedHistory = history.map(h => ({
+                ...h,
+                value: t.type === 'weight'
+                  ? convertWeightToDisplay(h.value, system)
+                  : (t.type === 'body_fat' ? h.value : convertCmToDisplay(h.value, system))
+              }));
+
               return (
                 <TouchableOpacity
                   key={t.type}
                   style={styles.measureTileCard}
                   activeOpacity={0.85}
-                  onPress={() => navigation.navigate('MeasurementHistory', { type: t.type, unit: t.unit })}
+                  onPress={() => navigation.navigate('MeasurementHistory', { type: t.type, unit: displayUnit })}
                 >
                   <View style={styles.meaTileHeader}>
                     <View style={styles.meaTitleCol}>
@@ -530,20 +656,28 @@ export default function ProfileScreen() {
                         {entry ? new Date(entry.recordedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'No logs'}
                       </Text>
                     </View>
-                    {history.length > 1 && <MiniTrendChart history={history} />}
+                    {convertedHistory.length > 1 && <MiniTrendChart history={convertedHistory} />}
                   </View>
                   <View style={styles.meaTileBody}>
-                    <Text style={styles.meaTileVal}>{entry ? entry.value : '—'}</Text>
-                    <Text style={styles.meaTileUnit}>{t.unit}</Text>
+                    {displayVal !== null ? (
+                      <>
+                        <Text style={styles.meaTileVal}>{displayVal}</Text>
+                        <Text style={styles.meaTileUnit}>{displayUnit}</Text>
+                      </>
+                    ) : (
+                      <Text style={styles.meaTileNoLogs}>No logs</Text>
+                    )}
                   </View>
                 </TouchableOpacity>
               );
             })}
           </View>
         )}
-      </ScrollView>
-    );
-  };
+      </>
+      )}
+    </ScrollView>
+  );
+};
 
   const renderPhotos = () => (
     <View style={[styles.tabContent, styles.photosEmptyContainer]}>
@@ -652,19 +786,25 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.lg, gap: spacing.md },
 
-  profileHeader: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.md, paddingVertical: spacing.sm, gap: spacing.md },
+  profileHeader: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.md, paddingVertical: spacing.md, gap: spacing.md },
   profileAvatar: { width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center' },
   profileAvatarText: { color: '#fff', fontSize: 20, fontWeight: '800' },
-  profileInfo: { flex: 1, gap: 2 },
+  profileInfo: { flex: 1, flexShrink: 1, gap: 2 },
   profileName: { color: colors.text, fontSize: 18, fontWeight: '800' },
   profileUsername: { color: colors.primary, fontSize: 13, fontWeight: '600' },
   profileGoal: { color: colors.textMuted, fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
   profileActions: { flexDirection: 'row', gap: spacing.sm },
   headerIconBtn: { padding: spacing.xs },
 
-  weightBanner: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.md, paddingBottom: spacing.sm },
+  weightBanner: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.md, paddingBottom: spacing.md },
   weightVal: { color: colors.primary, fontSize: 20, fontWeight: '800' },
   weightLbl: { color: colors.textMuted, fontSize: 12, marginLeft: 6 },
+  meaTileNoLogs: { color: colors.textMuted, fontSize: 15, fontWeight: '600', alignSelf: 'flex-start' },
+
+  errorContainer: { padding: spacing.lg, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surface, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, marginVertical: spacing.md, gap: spacing.md, width: '100%' },
+  errorText: { color: '#ef4444', fontSize: 14, fontWeight: '600', textAlign: 'center' },
+  retryBtn: { backgroundColor: colors.primary, paddingHorizontal: spacing.lg, paddingVertical: 10, borderRadius: radius.pill },
+  retryBtnText: { color: colors.primaryDark, fontWeight: '700', fontSize: 14 },
 
   tabs: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: colors.border, paddingHorizontal: spacing.xs },
   tab: { flex: 1, alignItems: 'center', paddingVertical: 14, borderBottomWidth: 2, borderBottomColor: 'transparent' },
