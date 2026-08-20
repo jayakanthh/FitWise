@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { Search, Bookmark, Check, Plus, Play, X } from 'lucide-react-native';
+import { Search, Bookmark, Check, Plus, Play, X, Pencil } from 'lucide-react-native';
 import { colors, spacing } from '../../theme/colors';
 import type { Routine } from '../../types/ironsync';
 
@@ -9,6 +9,7 @@ interface RoutineLibraryScreenProps {
   onStartRoutine: (routine: Routine) => void;
   onSaveRoutineToggle: (routineId: string) => void;
   onCreateRoutineClick: () => void;
+  onEditRoutine: (routine: Routine) => void;
   currentUserName?: string; // whose routines count as "My Routines"
 }
 
@@ -21,8 +22,11 @@ export default function RoutineLibraryScreen({
   onStartRoutine,
   onSaveRoutineToggle,
   onCreateRoutineClick,
+  onEditRoutine,
   currentUserName,
 }: RoutineLibraryScreenProps) {
+  // A routine is editable only by its creator.
+  const isMine = (r: Routine) => !!currentUserName && r.creator === currentUserName;
   const [activeTab, setActiveTab] = useState<typeof TABS[number]>('Public Library');
   const [selectedFilter, setSelectedFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
@@ -123,22 +127,32 @@ export default function RoutineLibraryScreen({
                 </View>
 
                 <View style={styles.cardActions}>
-                  <TouchableOpacity
-                    style={[styles.saveBtn, routine.isSaved && styles.saveBtnSaved]}
-                    onPress={() => onSaveRoutineToggle(routine.id)}
-                  >
-                    {routine.isSaved ? (
-                      <>
-                        <Check size={13} color={colors.primary} strokeWidth={3} />
-                        <Text style={styles.saveBtnTextSaved}>Saved</Text>
-                      </>
-                    ) : (
-                      <>
-                        <Plus size={13} color={colors.primaryDark} strokeWidth={3} />
-                        <Text style={styles.saveBtnText}>Save</Text>
-                      </>
-                    )}
-                  </TouchableOpacity>
+                  {isMine(routine) ? (
+                    <TouchableOpacity
+                      style={styles.editBtn}
+                      onPress={() => onEditRoutine(routine)}
+                    >
+                      <Pencil size={13} color={colors.primary} strokeWidth={2.5} />
+                      <Text style={styles.editBtnText}>Edit</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity
+                      style={[styles.saveBtn, routine.isSaved && styles.saveBtnSaved]}
+                      onPress={() => onSaveRoutineToggle(routine.id)}
+                    >
+                      {routine.isSaved ? (
+                        <>
+                          <Check size={13} color={colors.primary} strokeWidth={3} />
+                          <Text style={styles.saveBtnTextSaved}>Saved</Text>
+                        </>
+                      ) : (
+                        <>
+                          <Plus size={13} color={colors.primaryDark} strokeWidth={3} />
+                          <Text style={styles.saveBtnText}>Save</Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+                  )}
 
                   <TouchableOpacity style={styles.playBtn} onPress={() => onStartRoutine(routine)}>
                     <Play size={13} color={colors.textMuted} fill={colors.textMuted} />
@@ -190,9 +204,23 @@ export default function RoutineLibraryScreen({
               </ScrollView>
 
               <View style={styles.modalActions}>
-                <TouchableOpacity style={styles.modalCloseBtn} onPress={() => setPreviewRoutine(null)}>
-                  <Text style={styles.modalCloseText}>Close</Text>
-                </TouchableOpacity>
+                {isMine(previewRoutine) ? (
+                  <TouchableOpacity
+                    style={styles.modalEditBtn}
+                    onPress={() => {
+                      const r = previewRoutine;
+                      setPreviewRoutine(null);
+                      onEditRoutine(r);
+                    }}
+                  >
+                    <Pencil size={14} color={colors.primary} strokeWidth={2.5} />
+                    <Text style={styles.modalEditText}>Edit</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity style={styles.modalCloseBtn} onPress={() => setPreviewRoutine(null)}>
+                    <Text style={styles.modalCloseText}>Close</Text>
+                  </TouchableOpacity>
+                )}
                 <TouchableOpacity
                   style={styles.modalStartBtn}
                   onPress={() => {
@@ -311,6 +339,18 @@ const styles = StyleSheet.create({
   saveBtnSaved: { backgroundColor: '#1b2b24', borderWidth: 1, borderColor: colors.primary },
   saveBtnText: { color: colors.primaryDark, fontSize: 11, fontWeight: '700' },
   saveBtnTextSaved: { color: colors.primary, fontSize: 11, fontWeight: '700' },
+  editBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 7,
+    borderRadius: 999,
+    backgroundColor: colors.surfaceAlt,
+    borderWidth: 1,
+    borderColor: colors.primary,
+  },
+  editBtnText: { color: colors.primary, fontSize: 11, fontWeight: '700' },
   playBtn: {
     width: 32,
     height: 32,
@@ -368,6 +408,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalCloseText: { color: '#d4d4d4', fontSize: 12, fontWeight: '600' },
+  modalEditBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    gap: 6,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: colors.surfaceAlt,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalEditText: { color: colors.primary, fontSize: 12, fontWeight: '700' },
   modalStartBtn: {
     flex: 1,
     flexDirection: 'row',

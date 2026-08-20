@@ -140,6 +140,7 @@ export default function WorkoutsScreen({
             }}
             onSaveRoutineToggle={handleSaveToggle}
             onCreateRoutineClick={() => navigation.navigate('PlanBuilder')}
+            onEditRoutine={(r: Routine) => navigation.navigate('PlanBuilder', { planId: r.id })}
           />
         ) : (
           <ExerciseLibraryScreen
