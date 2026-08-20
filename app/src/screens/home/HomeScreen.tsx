@@ -8,11 +8,7 @@ import {
   Clock,
   Play,
   ChevronRight,
-  Dumbbell,
   Footprints,
-  Activity,
-  Heart,
-  Zap,
   Calendar,
   Users as UsersIcon,
   User as UserIcon,
@@ -29,22 +25,14 @@ interface HomeScreenProps {
   onFindMatchClick: () => void;
   onStartTodayPlan: () => void;
   onSelectBuddyWorkout: (buddy: TrainingBuddy) => void;
-  onCategorySelect?: (category: string) => void;
   todayTitle?: string; // today's workout from the active plan
   todaySubtitle?: string;
 }
 
 
-const CATEGORIES = [
-  { id: 'Gym', label: 'Gym', Icon: Dumbbell },
-  { id: 'Yoga', label: 'Yoga', Icon: Heart },
-  { id: 'Fitness', label: 'Fitness', Icon: Activity },
-  { id: 'Cardio', label: 'Cardio', Icon: Zap },
-];
-
 /**
- * Matches the reference layout: greeting, AI match card (with glow), category
- * pills, progress stats, today's plan (image + gradient overlay), training now.
+ * Matches the reference layout: greeting, progress stats, today's plan
+ * (image + gradient overlay), recent workouts.
  */
 export default function HomeScreen({
   user,
@@ -53,11 +41,9 @@ export default function HomeScreen({
   onFindMatchClick,
   onStartTodayPlan,
   onSelectBuddyWorkout,
-  onCategorySelect,
   todayTitle,
   todaySubtitle,
 }: HomeScreenProps) {
-  const [selectedCategory, setSelectedCategory] = useState('Gym');
   const [showFriendsWorkouts, setShowFriendsWorkouts] = useState(true);
 
   return (
@@ -67,27 +53,6 @@ export default function HomeScreen({
         <Text style={styles.h1}>Welcome back, {user.name}</Text>
         <Text style={styles.subtext}>Ready to crush your goals today?</Text>
       </View>
-
-      {/* Workout Category Pills */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pillRow}>
-        {CATEGORIES.map(({ id, label, Icon }) => {
-          const isActive = selectedCategory === id;
-          return (
-            <TouchableOpacity
-              key={id}
-              onPress={() => {
-                setSelectedCategory(id);
-                onCategorySelect?.(id);
-              }}
-              style={[styles.pill, isActive && styles.pillActive]}
-              activeOpacity={0.85}
-            >
-              <Icon size={14} color={isActive ? colors.primaryDark : colors.textMuted} />
-              <Text style={[styles.pillText, isActive && styles.pillTextActive]}>{label}</Text>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
 
       {/* YOUR PROGRESS Section */}
       <View style={styles.section}>
@@ -345,22 +310,6 @@ const styles = StyleSheet.create({
   },
   matchBtnText: { color: colors.primaryDark, fontSize: 11, fontWeight: '800', letterSpacing: 1 },
 
-  pillRow: { flexGrow: 0 },
-  pill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 8,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surfaceAlt,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginRight: spacing.xs,
-  },
-  pillActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-  pillText: { color: colors.textMuted, fontSize: 12, fontWeight: '600' },
-  pillTextActive: { color: colors.primaryDark },
 
   section: { gap: spacing.sm },
   sectionHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
