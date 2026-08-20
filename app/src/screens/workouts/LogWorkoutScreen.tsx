@@ -1278,13 +1278,6 @@ export default function LogWorkoutScreen({
                             <View style={styles.checkOutline} />
                           )}
                         </TouchableOpacity>
-
-                        {/* Add Drop quick action if working set */}
-                        {!set.completed && !isDrop && !isCardio && (
-                          <TouchableOpacity onPress={() => addDropAction(exIndex, setIdx)} style={styles.dropAddBtn}>
-                            <Typography variant="caption" color={colors.primary} style={{ fontSize: 9, fontWeight: '800' }}>+ DROP</Typography>
-                          </TouchableOpacity>
-                        )}
                       </View>
                     );
                   })}
@@ -1298,6 +1291,20 @@ export default function LogWorkoutScreen({
                       <Plus size={14} color={colors.textMuted} />
                       <Text style={[styles.addSetText, { color: colors.textMuted }]}>Add Warm-up</Text>
                     </TouchableOpacity>
+                    {/* Add a drop set off the last working set (80% load) */}
+                    {!isCardio && (() => {
+                      const lastWorking = ex.sets.reduce(
+                        (acc, s, i) => (s.setType !== 'warmup' && s.setType !== 'drop' ? i : acc),
+                        -1,
+                      );
+                      if (lastWorking < 0) return null;
+                      return (
+                        <TouchableOpacity style={styles.addSetBtn} onPress={() => addDropAction(exIndex, lastWorking)}>
+                          <Plus size={14} color="#06b6d4" />
+                          <Text style={[styles.addSetText, { color: '#06b6d4' }]}>Add Drop</Text>
+                        </TouchableOpacity>
+                      );
+                    })()}
                   </View>
                 </Card>
               </View>
@@ -1762,7 +1769,6 @@ const styles = StyleSheet.create({
   checkOutline: { width: 14, height: 14, borderRadius: 3, borderWidth: 1.5, borderColor: colors.textMuted },
   checkBtnActive: { backgroundColor: colors.primary },
 
-  dropAddBtn: { position: 'absolute', right: -32, top: 12 },
 
   actionsRow: { flexDirection: 'row', gap: spacing.md, paddingTop: 4 },
   addSetBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, padding: 4 },
