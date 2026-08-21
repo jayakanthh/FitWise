@@ -1,13 +1,11 @@
 import React, { useMemo } from 'react';
-import { View } from 'react-native';
-import Svg, { Path, Ellipse, Rect, G } from 'react-native-svg';
-import { colors } from '../../theme/colors';
+import { View, Image, StyleSheet } from 'react-native';
+import Svg, { Path, G } from 'react-native-svg';
+import { useTheme } from '../../theme/colors';
 
-const C_BG = '#14181c';
-const C_BODY = '#232930';
-const C_PRIMARY = colors.primary;    // Emerald - strong highlight
-const C_SECONDARY = '#166e57';      // Subtle Teal - secondary highlight
-const C_STROKE = '#323a45';          // Definition borders
+// Base anatomical artwork assets (professional anatomical muscle illustrations)
+const FRONT_ANATOMY = require('../../../assets/anatomy/front_neutral.jpg');
+const BACK_ANATOMY = require('../../../assets/anatomy/back_neutral.jpg');
 
 // Mapped Muscle Identifiers
 export type MuscleRegion =
@@ -59,156 +57,141 @@ export function aggregateMusclesFromExercises(
       secondary.add(normalizeMuscle(sm));
     }
   }
-  // Secondary muscles should not overlap primary activation
   for (const p of primary) {
     secondary.delete(p);
   }
   return { primary, secondary };
 }
 
-const W = 100;
-const H = 220;
+// ──────────────────────────────────────────────────────────────
+// SVG Overlay Region Definitions
+// Positioned within a 200×300 viewBox calibrated to overlay
+// the generated anatomical artwork images.
+// The artwork provides the visual quality; these overlays
+// provide data-driven highlighting via theme colors.
+// ──────────────────────────────────────────────────────────────
 
-// High-fidelity Realistic Anatomical Front SVG Paths
-function FrontSilhouette({ pm, sm }: { pm: Set<string>; sm: Set<string> }) {
-  const fill = (m: MuscleRegion) => pm.has(m) ? C_PRIMARY : sm.has(m) ? C_SECONDARY : C_BODY;
-  const op = (m: MuscleRegion) => (pm.has(m) || sm.has(m)) ? 1 : 0.7;
-
-  return (
-    <Svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
-      {/* Background Frame / Outline for contrast */}
-      <Path d="M 50 10 L 15 45 L 12 110 L 22 170 L 32 215 L 50 218 L 68 215 L 78 170 L 88 110 L 85 45 Z" fill="#181e24" opacity={0.3} />
-
-      {/* Head & Neck */}
-      <G stroke={C_STROKE} strokeWidth={1.2}>
-        <Ellipse cx={50} cy={22} rx={11} ry={14} fill={C_BODY} />
-        <Path d="M44 34 C44 38 46 44 46 44 L54 44 C54 44 56 38 56 34 Z" fill={fill('traps')} opacity={op('traps')} />
-      </G>
-
-      {/* Front Delts (Shoulders) */}
-      <G stroke={C_STROKE} strokeWidth={1.2}>
-        <Path d="M33 46 C27 48 23 54 24 63 C26 66 31 64 34 54 Z" fill={fill('front_delts')} opacity={op('front_delts')} />
-        <Path d="M67 46 C73 48 77 54 76 63 C74 66 69 64 66 54 Z" fill={fill('front_delts')} opacity={op('front_delts')} />
-      </G>
-
-      {/* Chest (Pectorals) */}
-      <G stroke={C_STROKE} strokeWidth={1.2}>
-        <Path d="M34 52 C40 50 48 51 50 58 C49 66 43 71 34 70 Z" fill={fill('chest')} opacity={op('chest')} />
-        <Path d="M66 52 C60 50 52 51 50 58 C51 66 57 71 66 70 Z" fill={fill('chest')} opacity={op('chest')} />
-      </G>
-
-      {/* Biceps */}
-      <G stroke={C_STROKE} strokeWidth={1.2}>
-        <Path d="M24 63 C20 68 18 76 21 84 C23 85 26 80 27 72 Z" fill={fill('biceps')} opacity={op('biceps')} />
-        <Path d="M76 63 C80 68 82 76 79 84 C77 85 74 80 73 72 Z" fill={fill('biceps')} opacity={op('biceps')} />
-      </G>
-
-      {/* Forearms */}
-      <G stroke={C_STROKE} strokeWidth={1.2}>
-        <Path d="M21 84 C17 92 14 104 18 112 C21 114 25 106 26 94 Z" fill={fill('forearms')} opacity={op('forearms')} />
-        <Path d="M79 84 C83 92 86 104 82 112 C79 114 75 106 74 94 Z" fill={fill('forearms')} opacity={op('forearms')} />
-      </G>
-
-      {/* Abs (Rectus Abdominis) */}
-      <G stroke={C_STROKE} strokeWidth={1.2}>
-        <Path d="M42 66 H58 V78 H42 Z" fill={fill('abs')} opacity={op('abs')} />
-        <Path d="M41 80 H59 V92 H41 Z" fill={fill('abs')} opacity={op('abs')} />
-        <Path d="M42 94 H58 V106 H42 Z" fill={fill('abs')} opacity={op('abs')} />
-      </G>
-
-      {/* Obliques */}
-      <G stroke={C_STROKE} strokeWidth={1.2}>
-        <Path d="M41 68 C34 76 33 94 41 106 Z" fill={fill('obliques')} opacity={op('obliques')} />
-        <Path d="M59 68 C66 76 67 94 59 106 Z" fill={fill('obliques')} opacity={op('obliques')} />
-      </G>
-
-      {/* Hips & Glute Front Definition */}
-      <Path d="M33 106 C33 118 36 122 36 122 H64 C64 122 67 118 67 106 Z" fill={C_BODY} stroke={C_STROKE} strokeWidth={1.2} />
-
-      {/* Quadriceps (Thighs) */}
-      <G stroke={C_STROKE} strokeWidth={1.2}>
-        <Path d="M35 122 C28 135 27 165 37 178 C39 174 41 155 45 122 Z" fill={fill('quads')} opacity={op('quads')} />
-        <Path d="M65 122 C72 135 73 165 63 178 C61 174 59 155 55 122 Z" fill={fill('quads')} opacity={op('quads')} />
-      </G>
-
-      {/* Calves (Tibialis & Gastrocnemius Front) */}
-      <G stroke={C_STROKE} strokeWidth={1.2}>
-        <Path d="M36 180 C32 190 32 205 35 214 H38 C39 205 40 190 39 180 Z" fill={fill('calves')} opacity={op('calves')} />
-        <Path d="M64 180 C68 190 68 205 65 214 H62 C61 205 60 190 61 180 Z" fill={fill('calves')} opacity={op('calves')} />
-      </G>
-    </Svg>
-  );
+interface RegionDef {
+  paths: string[];
 }
 
-// High-fidelity Realistic Anatomical Back SVG Paths
-function BackSilhouette({ pm, sm }: { pm: Set<string>; sm: Set<string> }) {
-  const fill = (m: MuscleRegion) => pm.has(m) ? C_PRIMARY : sm.has(m) ? C_SECONDARY : C_BODY;
-  const op = (m: MuscleRegion) => (pm.has(m) || sm.has(m)) ? 1 : 0.7;
+// Front-view overlay regions
+const FRONT_REGIONS: Record<string, RegionDef> = {
+  traps: {
+    paths: [
+      'M 88 34 C 82 36, 72 40, 64 46 L 68 52 C 76 48, 84 42, 88 38 Z',
+      'M 112 34 C 118 36, 128 40, 136 46 L 132 52 C 124 48, 116 42, 112 38 Z',
+    ],
+  },
+  front_delts: {
+    paths: [
+      'M 64 46 C 56 48, 48 54, 44 66 C 44 76, 52 72, 58 62 L 62 52 Z',
+      'M 136 46 C 144 48, 152 54, 156 66 C 156 76, 148 72, 142 62 L 138 52 Z',
+    ],
+  },
+  chest: {
+    paths: [
+      'M 62 56 C 70 54, 86 56, 96 64 C 96 82, 84 86, 62 82 Z',
+      'M 138 56 C 130 54, 114 56, 104 64 C 104 82, 116 86, 138 82 Z',
+    ],
+  },
+  biceps: {
+    paths: [
+      'M 44 66 C 38 76, 36 90, 40 102 C 44 104, 50 94, 52 80 Z',
+      'M 156 66 C 162 76, 164 90, 160 102 C 156 104, 150 94, 148 80 Z',
+    ],
+  },
+  forearms: {
+    paths: [
+      'M 40 102 C 34 114, 28 130, 34 148 C 40 150, 44 134, 46 116 Z',
+      'M 160 102 C 166 114, 172 130, 166 148 C 160 150, 156 134, 154 116 Z',
+    ],
+  },
+  abs: {
+    paths: [
+      'M 82 82 H 118 V 140 L 100 154 L 82 140 Z',
+    ],
+  },
+  obliques: {
+    paths: [
+      'M 62 82 C 60 96, 58 116, 72 134 C 74 124, 74 100, 68 86 Z',
+      'M 138 82 C 140 96, 142 116, 128 134 C 126 124, 126 100, 132 86 Z',
+    ],
+  },
+  quads: {
+    paths: [
+      'M 70 146 C 58 168, 56 206, 68 228 C 74 222, 78 194, 86 150 Z',
+      'M 130 146 C 142 168, 144 206, 132 228 C 126 222, 122 194, 114 150 Z',
+    ],
+  },
+  calves: {
+    paths: [
+      'M 68 232 C 62 244, 60 264, 66 282 C 70 282, 74 262, 74 238 Z',
+      'M 132 232 C 138 244, 140 264, 134 282 C 130 282, 126 262, 126 238 Z',
+    ],
+  },
+};
 
-  return (
-    <Svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
-      {/* Background Frame / Outline for contrast */}
-      <Path d="M 50 10 L 15 45 L 12 110 L 22 170 L 32 215 L 50 218 L 68 215 L 78 170 L 88 110 L 85 45 Z" fill="#181e24" opacity={0.3} />
+// Back-view overlay regions
+const BACK_REGIONS: Record<string, RegionDef> = {
+  traps: {
+    paths: [
+      'M 100 30 L 70 50 C 80 62, 90 70, 100 74 Z',
+      'M 100 30 L 130 50 C 120 62, 110 70, 100 74 Z',
+    ],
+  },
+  front_delts: {
+    paths: [
+      'M 64 46 C 56 48, 48 54, 44 66 C 48 72, 56 68, 62 56 Z',
+      'M 136 46 C 144 48, 152 54, 156 66 C 152 72, 144 68, 138 56 Z',
+    ],
+  },
+  lats: {
+    paths: [
+      'M 64 56 C 58 74, 60 106, 80 118 C 78 96, 72 74, 64 56 Z',
+      'M 136 56 C 142 74, 140 106, 120 118 C 122 96, 128 74, 136 56 Z',
+    ],
+  },
+  triceps: {
+    paths: [
+      'M 44 66 C 38 76, 36 90, 40 102 C 44 104, 50 94, 52 80 Z',
+      'M 156 66 C 162 76, 164 90, 160 102 C 156 104, 150 94, 148 80 Z',
+    ],
+  },
+  forearms: {
+    paths: [
+      'M 40 102 C 34 114, 28 130, 34 148 C 40 150, 44 134, 46 116 Z',
+      'M 160 102 C 166 114, 172 130, 166 148 C 160 150, 156 134, 154 116 Z',
+    ],
+  },
+  lower_back: {
+    paths: [
+      'M 82 112 H 118 V 146 H 82 Z',
+    ],
+  },
+  glutes: {
+    paths: [
+      'M 64 138 C 54 144, 56 170, 70 176 C 80 174, 86 158, 86 138 Z',
+      'M 136 138 C 146 144, 144 170, 130 176 C 120 174, 114 158, 114 138 Z',
+    ],
+  },
+  hamstrings: {
+    paths: [
+      'M 68 176 C 56 190, 56 218, 68 232 C 72 226, 76 200, 84 176 Z',
+      'M 132 176 C 144 190, 144 218, 132 232 C 128 226, 124 200, 116 176 Z',
+    ],
+  },
+  calves: {
+    paths: [
+      'M 66 236 C 58 248, 58 268, 66 284 C 72 278, 74 258, 72 238 Z',
+      'M 134 236 C 142 248, 142 268, 134 284 C 128 278, 126 258, 128 238 Z',
+    ],
+  },
+};
 
-      {/* Head */}
-      <G stroke={C_STROKE} strokeWidth={1.2}>
-        <Ellipse cx={50} cy={22} rx={11} ry={14} fill={C_BODY} />
-        <Path d="M44 34 C44 38 46 44 46 44 L54 44 C54 44 56 38 56 34 Z" fill={C_BODY} />
-      </G>
-
-      {/* Traps (Trapezius) */}
-      <G stroke={C_STROKE} strokeWidth={1.2}>
-        <Path d="M50 36 L42 48 C46 54 48 64 50 68 Z" fill={fill('traps')} opacity={op('traps')} />
-        <Path d="M50 36 L58 48 C54 54 52 64 50 68 Z" fill={fill('traps')} opacity={op('traps')} />
-      </G>
-
-      {/* Rear Delts (Shoulders Back) */}
-      <G stroke={C_STROKE} strokeWidth={1.2}>
-        <Path d="M33 46 C27 48 23 54 24 63 C26 66 31 64 34 54 Z" fill={fill('front_delts')} opacity={op('front_delts')} />
-        <Path d="M67 46 C73 48 77 54 76 63 C74 66 69 64 66 54 Z" fill={fill('front_delts')} opacity={op('front_delts')} />
-      </G>
-
-      {/* Lats (Upper Back / Latissimus) */}
-      <G stroke={C_STROKE} strokeWidth={1.2}>
-        <Path d="M34 54 C31 66 32 88 44 94 C43 80 40 68 34 54 Z" fill={fill('lats')} opacity={op('lats')} />
-        <Path d="M66 54 C69 66 68 88 56 94 C57 80 60 68 66 54 Z" fill={fill('lats')} opacity={op('lats')} />
-      </G>
-
-      {/* Triceps */}
-      <G stroke={C_STROKE} strokeWidth={1.2}>
-        <Path d="M24 63 C20 68 18 76 21 84 C23 85 26 80 27 72 Z" fill={fill('triceps')} opacity={op('triceps')} />
-        <Path d="M76 63 C80 68 82 76 79 84 C77 85 74 80 73 72 Z" fill={fill('triceps')} opacity={op('triceps')} />
-      </G>
-
-      {/* Forearms (Back View) */}
-      <G stroke={C_STROKE} strokeWidth={1.2}>
-        <Path d="M21 84 C17 92 14 104 18 112 C21 114 25 106 26 94 Z" fill={fill('forearms')} opacity={op('forearms')} />
-        <Path d="M79 84 C83 92 86 104 82 112 C79 114 75 106 74 94 Z" fill={fill('forearms')} opacity={op('forearms')} />
-      </G>
-
-      {/* Lower Back */}
-      <Path d="M44 94 H56 V106 H44 Z" fill={fill('lower_back')} opacity={op('lower_back')} stroke={C_STROKE} strokeWidth={1.2} />
-
-      {/* Glutes */}
-      <G stroke={C_STROKE} strokeWidth={1.2}>
-        <Path d="M33 106 C25 110 27 132 37 136 C44 135 48 122 48 106 Z" fill={fill('glutes')} opacity={op('glutes')} />
-        <Path d="M67 106 C75 110 73 132 63 136 C56 135 52 122 52 106 Z" fill={fill('glutes')} opacity={op('glutes')} />
-      </G>
-
-      {/* Hamstrings */}
-      <G stroke={C_STROKE} strokeWidth={1.2}>
-        <Path d="M35 136 C28 145 28 168 37 178 C39 174 41 155 45 136 Z" fill={fill('hamstrings')} opacity={op('hamstrings')} />
-        <Path d="M65 136 C72 145 73 168 63 178 C61 174 59 155 55 136 Z" fill={fill('hamstrings')} opacity={op('hamstrings')} />
-      </G>
-
-      {/* Calves (Gastrocnemius Back View) */}
-      <G stroke={C_STROKE} strokeWidth={1.2}>
-        <Path d="M36 180 C31 190 31 205 35 214 H38 C40 205 40 190 39 180 Z" fill={fill('calves')} opacity={op('calves')} />
-        <Path d="M64 180 C69 190 69 205 65 214 H62 C60 205 60 190 61 180 Z" fill={fill('calves')} opacity={op('calves')} />
-      </G>
-    </Svg>
-  );
-}
+// ──────────────────────────────────────────────────────────────
+// Main Component
+// ──────────────────────────────────────────────────────────────
 
 interface Props {
   primaryMuscles?: Set<string>;
@@ -223,9 +206,11 @@ export default function MuscleSilhouette({
   view = 'front',
   size = 100,
 }: Props) {
-  const scale = size / W;
-  const scaledH = scale * H;
+  const { theme } = useTheme();
+  const imageWidth = size;
+  const imageHeight = size * 1.5; // 2:3 aspect ratio
 
+  // Normalize muscle names from exercise data
   const pm = useMemo(() => {
     const s = new Set<string>();
     primaryMuscles.forEach(m => s.add(normalizeMuscle(m)));
@@ -239,15 +224,64 @@ export default function MuscleSilhouette({
     return s;
   }, [secondaryMuscles, pm]);
 
+  const regions = view === 'front' ? FRONT_REGIONS : BACK_REGIONS;
+  const imageSource = view === 'front' ? FRONT_ANATOMY : BACK_ANATOMY;
+
   return (
-    <View style={{ width: size, height: scaledH, backgroundColor: C_BG, borderRadius: 12, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderColor: C_STROKE, borderWidth: 1 }}>
-      <View style={{ transform: [{ scaleX: scale }, { scaleY: scale }], width: W, height: H }}>
-        {view === 'front' ? (
-          <FrontSilhouette pm={pm} sm={sm} />
-        ) : (
-          <BackSilhouette pm={pm} sm={sm} />
-        )}
-      </View>
+    <View style={[styles.wrapper, { width: imageWidth, height: imageHeight, borderRadius: theme.shape.radiusMd }]}>
+      {/* Layer A: High-quality anatomical base artwork */}
+      <Image
+        source={imageSource}
+        style={[styles.anatomyImage, { width: imageWidth, height: imageHeight }]}
+        resizeMode="contain"
+      />
+
+      {/* Layer B: SVG overlay for data-driven muscle highlighting */}
+      <Svg
+        style={StyleSheet.absoluteFill}
+        width={imageWidth}
+        height={imageHeight}
+        viewBox="0 0 200 300"
+      >
+        {Object.entries(regions).map(([region, def]) => {
+          const isPrimary = pm.has(region);
+          const isSecondary = sm.has(region);
+          if (!isPrimary && !isSecondary) return null;
+          if (def.paths.length === 0) return null;
+
+          const fillColor = isPrimary ? theme.colors.primary : theme.colors.accent;
+          const fillOpacity = isPrimary ? 0.5 : 0.35;
+
+          return (
+            <G key={region}>
+              {def.paths.map((d, i) => (
+                <Path
+                  key={`${region}-${i}`}
+                  d={d}
+                  fill={fillColor}
+                  opacity={fillOpacity}
+                  stroke={fillColor}
+                  strokeWidth={0.5}
+                  strokeOpacity={0.6}
+                />
+              ))}
+            </G>
+          );
+        })}
+      </Svg>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  wrapper: {
+    overflow: 'hidden',
+    position: 'relative',
+    backgroundColor: '#0a0a0a',
+  },
+  anatomyImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+  },
+});
