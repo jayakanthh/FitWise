@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Scale, Bell, Shield, Info, ChevronRight, ChevronLeft, Check, X, Edit2 } from "lucide-react-native";
+import { Scale, Bell, Shield, Info, ChevronRight, ChevronLeft, Check, X, Edit2, Palette } from "lucide-react-native";
 import { colors, spacing, radius } from "../../theme/colors";
 import { useCurrentUser } from "../../context/CurrentUser";
 import { 
@@ -284,6 +284,21 @@ export default function SettingsScreen() {
               thumbColor={notificationsEnabled ? colors.primary : colors.textMuted}
             />
           </View>
+
+          <TouchableOpacity
+            style={[styles.toggleRow, { borderTopWidth: 1, borderTopColor: colors.border }]}
+            activeOpacity={0.7}
+            onPress={() => navigation.navigate("Themes")}
+          >
+            <View style={styles.toggleLeft}>
+              <Palette size={16} color={colors.primary} />
+              <View>
+                <Text style={styles.toggleLabel}>Themes</Text>
+                <Text style={styles.toggleSub}>Personalize your visual identity</Text>
+              </View>
+            </View>
+            <ChevronRight size={18} color={colors.textMuted} />
+          </TouchableOpacity>
         </View>
 
         {/* Privacy */}

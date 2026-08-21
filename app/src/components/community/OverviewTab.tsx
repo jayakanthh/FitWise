@@ -294,16 +294,16 @@ export default function OverviewTab({ community, onTabChange }: Props) {
                     const heightPercent = maxCount > 0 ? (count / maxCount) : 0;
                     const barHeight = Math.max(4, heightPercent * 40); // 4px min, 40px max
                     
-                    let barColor = '#1A1E21'; // Quiet
+                    let barColor = colors.surfaceAlt; // Quiet
                     if (count > 0) {
                       if (isMax) {
-                        barColor = colors.primary; // Busiest (Iron Orange)
+                        barColor = colors.primary; // Busiest (primary)
                       } else if (heightPercent >= 0.6) {
-                        barColor = 'rgba(255, 107, 0, 0.7)'; // Busy
+                        barColor = colors.primary + 'b3'; // Busy (primary with opacity)
                       } else if (heightPercent >= 0.2) {
                         barColor = colors.textMuted; // Normal
                       } else {
-                        barColor = '#252A2E'; // Quiet but active
+                        barColor = colors.surfaceAlt; // Quiet but active
                       }
                     }
 
